@@ -1,9 +1,12 @@
-import { isInternalLink } from './Admin'
+import Admin from './Admin'
 
-test('should return false given external link', () => {
-  expect(isInternalLink('https://google.com')).toBe(false)
-})
-
-test('should return true given internal link', () => {
-  expect(isInternalLink('/some-page')).toBe(true)
-})
+describe("Test Admin Class", () => {
+  it("should init default properties", () => {
+    const userInfo = { name: 'John', email: 'john@email.com' }
+    const admin = new Admin(userInfo);
+    expect(admin.id.length == 9).toBeTruthy();
+    expect(admin.createTime > 1).toBeTruthy();
+    expect(admin.name == userInfo.name).toBeTruthy();
+    expect(admin.email == userInfo.email).toBeTruthy();
+  });
+});
