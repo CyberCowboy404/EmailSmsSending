@@ -1,4 +1,4 @@
-export default interface Account {
+export interface AccountInterface {
   id: string;
   name: string;
   // Which type of references?

@@ -1,4 +1,5 @@
-export default interface Admin {
+import { AccountInterface } from './Account.interface';
+export interface AdminInterface {
   id: string;
   name: string;
   email: string;
@@ -6,4 +7,5 @@ export default interface Admin {
   createTime: number;
   // Unix timespamp
   updateTime: number;
+  account?: AccountInterface;
 }
