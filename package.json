@@ -20,7 +20,7 @@
   "scripts": {
     "compile": "tsc",
     "watch": "tsc -w",
-    "test": "jest",
+    "test": "jest --coverage",
     "start": "node ./build/index.js"
   },
   "author": "",
