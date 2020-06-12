@@ -1,22 +1,22 @@
 import { AdminInterface } from './interfaces/Admin.interface';
 import { AccountInterface } from './interfaces/Account.interface';
-import { ErrorMessageInterface } from './interfaces/Error.iterface';
-import tools from './tools';
-import messages from './messages';
+import tools from './helpers/tools';
+import messages from './helpers/messages';
 import * as _ from 'lodash';
-import Account from './Account';
+import { Account } from './Account';
+import { ContactInterface } from './interfaces/Contact.interface';
 
-type userInfo = {
+export type userInfo = {
   name: string;
   email: string;
 }
-export default class Admin implements AdminInterface {
+export class Admin implements AdminInterface {
   id: string;
   name: string;
   email: string;
   createTime: number;
   updateTime: number;
-  account?: AccountInterface;
+  accounts: Account[] = [];
   constructor({ name, email }: userInfo) {
     const ts = tools.generateUnixTimeStamp();
     this.id = tools.generateUniqId();
@@ -26,8 +26,19 @@ export default class Admin implements AdminInterface {
     this.updateTime = ts;
   }
 
-  createAccount(name: string): Account | ErrorMessageInterface {
-    if (_.isNil(name)) return messages.error.name;
-    return this.account = this.account instanceof Account ? this.account : new Account({ name, adminId: this.id })
+  getAccount(accountId: string): Account | undefined {
+    // todo:
+    // - check if account id exists amount linked accounts
+    // - if account didn't find return message with bad status
+    return this.accounts.find(account => account.id == accountId);
   }
+
+  linkAccount(account: Account) {
+    // todo:
+    // check if account already exists
+    // if account exists ignore and return null with messages that account exists
+    this.accounts.push(account);
+    return tools.statusMessage(true, messages.admin.accountLinked)
+  }
+
 }

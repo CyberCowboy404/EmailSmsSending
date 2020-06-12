@@ -1,4 +1,6 @@
-import Admin from './Admin'
+//@ts-nocheck
+import { Admin } from '../Admin'
+import messages from '../helpers/messages';
 
 describe("Test Admin Class", () => {
   it("should init default properties", () => {

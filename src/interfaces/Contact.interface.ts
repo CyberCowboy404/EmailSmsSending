@@ -1,4 +1,4 @@
-export default interface Contact {
+export interface ContactInterface {
   id: string;
   name: string;
   email: string;
@@ -10,5 +10,10 @@ export default interface Contact {
   createTime: number;
   updateTime: number;
   unsubscribeSource?: UnsubscribeSource
+}
+export interface CreateContactInterface {
+  adminId: string;
+  accountId: string;
+  contact: ContactInterface;
 }
 type UnsubscribeSource = 'EMAIL_LINK' | 'CRM' | 'SMS_LINK';

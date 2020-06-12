@@ -1,4 +1,4 @@
-import Account from './Account'
+import { Account } from '../Account'
 
 describe("Test Account Class", () => {
   it("should init default properties", () => {
