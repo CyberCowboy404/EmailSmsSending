@@ -1,7 +1,5 @@
 import { Application } from './Application';
-import { ContactInterface } from './interfaces/Contact.interface';
 import data from './data/contacts';
-import tools from './helpers/tools';
 
 const app = new Application();
 
@@ -20,9 +18,10 @@ if (admin) {
     app.createContact({ adminId, accountId, contact: data.contacts2(accountId) });
     app.createContact({ adminId, accountId, contact: data.contacts3(accountId) });
     app.createContact({ adminId, accountId, contact: data.contacts4(accountId) });
-
-    const sms = app.createSms({ accountId, adminId });
-    const letter = app.createLetter({ accountId, adminId });
+    const smsContent: string = 'I\'am sms';
+    const letterContent: string = 'I\'am letter';
+    const sms = app.createSms({ accountId, adminId, content: smsContent });
+    const letter = app.createLetter({ accountId, adminId, content: letterContent });
     console.log('sms: ', sms);
     console.log('letter: ', letter);
   }

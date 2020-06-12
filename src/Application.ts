@@ -15,6 +15,10 @@ type AccessArguments = {
   accountId: string;
 }
 
+interface CreateSenderObjectInterface extends AccessArguments {
+  content: string;
+}
+
 export class Application {
   private admins: Admin[] = [];
   private accounts: Account[] = [];
@@ -84,32 +88,38 @@ export class Application {
 
   }
 
-  createSms({ adminId, accountId }: AccessArguments): MessageInterface {
+  createSms({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     // todo:
     // - do all validations relative parameters
-    const admin = this.getAdminById(adminId);
-    const account = admin.getAccount(accountId);
-    const contacts = account?.getContacts || [];
+    const contacts = this.getContacts({ adminId, accountId });
     const sms = new Sms('sms', contacts);
-    const status = sms.create('I\'m sms');
+    const status = sms.create(content);
     return status;
   }
 
   sendSms() {
 
   }
-  createLetter({ adminId, accountId }: AccessArguments): MessageInterface {
+  createLetter({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     // todo:
     // - do all validations relative parameters
-    const admin = this.getAdminById(adminId);
-    const account = admin.getAccount(accountId);
-    const contacts = account?.getContacts || [];
+    const contacts = this.getContacts({ adminId, accountId });
     const letter = new Letter('letter', contacts);
-    const status = letter.create('I\'m email');
+    const status = letter.create(content);
     return status;
   }
   sendLetter({ adminId, accountId }: AccessArguments) {
 
+  }
+
+  private getContacts({ adminId, accountId }: AccessArguments) {
+    // todo
+    // parametr validation
+    const admin = this.getAdminById(adminId);
+    const account = admin.getAccount(accountId);
+    const contacts = account?.getContacts || [];
+
+    return contacts;
   }
 
 }
