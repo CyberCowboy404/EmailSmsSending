@@ -6,8 +6,7 @@ import { Sms } from './Sender/Sms';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { every, isEmpty, remove, clone } from 'lodash';
-import contact from './data/contacts';
+import { every, isEmpty } from 'lodash';
 
 type AccessArguments = {
   adminId: string;
@@ -126,7 +125,7 @@ export class Application {
 
     return cleanContacts;
   }
-  private removeUnsubscribed(elem: ContactInterface): ContactInterface | undefined {
+  private removeUnsubscribed(elem: ContactInterface): any {
     if (elem.emailEnabled && elem.phoneNumberEnabled) {
       return elem;
     }
