@@ -16,6 +16,9 @@ const tools = {
   findById(collection: any[], id: string) {
     return collection.find(elem => elem.id == id);
   },
+  findByPhone(collection: any[], phoneNumber: string) {
+    return collection.find(elem => elem.phoneNumber == phoneNumber);
+  },
   statusMessage(ok: boolean, message: string, data: any = {}): MessageInterface {
     return { ok, message, data }
   }

@@ -4,7 +4,7 @@ export interface ContactInterface {
   email: string;
   emailEnabled: boolean;
   // Better number or string?
-  phoneNumber?: number;
+  phoneNumber?: string;
   phoneNumberEnabled?: boolean;
   accountId: string;
   createTime: number;

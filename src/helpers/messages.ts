@@ -21,6 +21,10 @@ const messages = {
     },
     sent: 'Data has been sent',
     notSent: 'Data not sent'
+  },
+  unsubscribe: {
+    token: 'Tokens mismatch',
+    phoneUser: 'User sucessfully unsubcribed'
   }
 };
 

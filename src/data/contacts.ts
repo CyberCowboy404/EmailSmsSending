@@ -8,6 +8,7 @@ const contacts1 = (accountId: string) => {
     email: 'simon@gmail.com',
     emailEnabled: true,
     phoneNumberEnabled: true,
+    phoneNumber: '+7808080808080',
     accountId,
     createTime: tools.generateUnixTimeStamp(),
     updateTime: tools.generateUnixTimeStamp()

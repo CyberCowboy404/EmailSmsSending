@@ -3,10 +3,12 @@ import messages from './helpers/messages';
 import { Admin, userInfo } from './Admin';
 import { Account, AccountInfo } from './Account';
 import { Sms } from './Sender/Sms';
+import { EncryptedDataStructure } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import { every, isEmpty } from 'lodash';
+import { decrypt } from './helpers/encryption';
 
 type AccessArguments = {
   adminId: string;
@@ -65,6 +67,12 @@ export class Application {
     return tools.statusMessage(true, messages.account.created, { id: account.id });
   }
 
+  getAccount(accountId: string): Account {
+    // todo
+    // validation
+    return tools.findById(this.accounts, accountId);
+  }
+
   // adminId is like active user
   createContact({ accountId, adminId, contact }: CreateContactInterface) {
     //todo:
@@ -72,7 +80,7 @@ export class Application {
     // check if contacts are empty
     // - before contact will be created check if we have such contact and he can accept messages
     // phoneNumberEnabled === true || emailEnabled === true, both must be true else we don't allow to add such contact
-    const contacts = this.accounts.map(account => account.contacts);
+    const contacts = this.accounts.map(account => account.getContacts);
 
     if (!every(contacts, isEmpty)) {
       // check contacts if they available to receive messages
@@ -115,12 +123,31 @@ export class Application {
       return letter.send();
     }
   }
+  unsubsribe(link: string) {
+    // todo:
+    // check link 
+    // check decryption
+    // check after parsing
+    const decryptedLink = decrypt(link);
+    const linkData = decryptedLink.replace(/\s+/g, '');
+    const linkObject: EncryptedDataStructure = JSON.parse(linkData);
+    // refactor this validation
+    if (linkObject.type == 'sms' && linkObject.user && linkObject.phoneNumber) {
+      const account = this.getAccount(linkObject.accountId);
+      const result = account.unsubscribePhoneLink(linkObject.phoneNumber, linkObject.token);
+    }
+    // console.log('linkObject: ', linkObject);
+  }
+
+  resubscribe() {
+
+  }
   private getContacts({ adminId, accountId }: AccessArguments) {
     // todo
     // parametr validation
     const admin = this.getAdminById(adminId);
     const account = admin.getAccount(accountId);
-    const contacts = account?.getContacts() || [];
+    const contacts = account?.getContacts || [];
     const cleanContacts = contacts.map(this.removeUnsubscribed);
 
     return cleanContacts;

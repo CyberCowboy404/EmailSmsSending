@@ -36,8 +36,35 @@ export class Account implements AccountInterface {
     return tools.statusMessage(true, messages.contact.created, contact);
   }
 
-  getContacts(): ContactInterface[] {
+  get getContacts(): ContactInterface[] {
     return this.contacts;
+  }
+
+  unsubscribeEmailLink(email: string) {
+
+  }
+
+  unsubscribeEmailCrm(email: string) {
+
+  }
+
+  unsubscribePhoneLink(phoneNumber: string, previousToken: string): MessageInterface {
+    const contact: ContactInterface = tools.findByPhone(this.contacts, phoneNumber);
+    if (contact.token === previousToken) {
+      contact.phoneNumberEnabled = false;
+      contact.token = generateToken();
+      return tools.statusMessage(true, messages.unsubscribe.phoneUser);
+    } else {
+      return tools.statusMessage(false, messages.unsubscribe.token);
+    }
+  }
+
+  unsubscribePhoneCrm(phoneNumber: string) {
+
+  }
+
+  resubscribeContact(email: string, phoneNumber: string) {
+
   }
 
 }

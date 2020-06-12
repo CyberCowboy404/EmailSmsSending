@@ -5,10 +5,21 @@ import messages from '../helpers/messages';
 import { cloneDeep } from 'lodash';
 import { config } from '../config/config';
 import { encrypt } from '../helpers/encryption';
+import { type } from 'os';
 
+//todo move all types to separated file
 export type SenderParams = {
   smsId: string;
   accountId: string;
+};
+
+export type EncryptedDataStructure = {
+  accountId: string;
+  contactId: string;
+  type: type;
+  user: boolean;
+  token: string;
+  phoneNumber?: string;
 };
 
 export type SenderConstructor = {
@@ -43,18 +54,22 @@ export class Sender {
     const contacts = cloneDeep(this.contacts);
     console.log('contacts: ', contacts);
     const sent = contacts.map(contact => {
+      //make string like key:value:key:value in order to easely convert it to object
       const stringToEncrypt: string = `{
-        accountId: ${contact.accountId},
-        contactId: ${contact.id},
-        type: ${this.type},
-        user: true
+        "accountId":"${contact.accountId}",
+        "contactId":"${contact.id}",
+        "type":"${this.type}",
+        "phoneNumber": "${contact.phoneNumber || false}",
+        "email": "${contact.email || false}",
+        "user":"true",
+        "token":"${contact.token}"
       }`;
       const token = encrypt(stringToEncrypt);
       return {
         message: `${this.content} in order to unsubscribe follow this link ${config.website}/?token=${token}`
       };
     });
-    
+
     // todo:
     // check if we get everything right
     const ts = tools.generateUnixTimeStamp();
