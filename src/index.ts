@@ -20,22 +20,24 @@ if (admin) {
     app.createContact({ adminId, accountId, contact: data.contacts2(accountId) });
 
     const smsContent: string = 'I\'am sms';
-    // const letterContent: string = 'I\'am letter';
+    const letterContent: string = 'I\'am letter';
 
-    // const letter = app.createLetter({ accountId, adminId, content: letterContent });
+    const letter = app.createLetter({ accountId, adminId, content: letterContent });
     const sms = app.createSms({ accountId, adminId, content: smsContent });
 
     const smsId = sms.data.id;
-    // const letterId = letter.data.id;
+    const letterId = letter.data.id;
 
-    // const sentLetter = app.sendLetter(letterId);
-    const sentSms = app.sendSms(smsId);
+    const sentLetter = app.sendLetter(letterId);
+    // const sentSms = app.sendSms(smsId);
     
     // console.log('sentSms: ', sentSms);
-    const unsubcribe = sentSms?.data[0].message;
-    const unsubcribeLink = unsubcribe.replace(/.*token=/,'');
+    // const unsubcribe = sentSms?.data[0].message;
+    const unsubcribeLetter = sentLetter?.data[0].message;
+    // const unsubcribeLink = unsubcribe.replace(/.*token=/,'');
+    const unsubcribeLinkLetter = unsubcribeLetter.replace(/.*token=/,'');
 
-    app.unsubsribe(unsubcribeLink);
+    app.unsubsribe(unsubcribeLinkLetter);
     // console.log('unsubcribe: ', unsubcribe);
     // console.log('sentLetter: ', sentLetter);
 

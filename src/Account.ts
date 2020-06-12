@@ -40,8 +40,18 @@ export class Account implements AccountInterface {
     return this.contacts;
   }
 
-  unsubscribeEmailLink(email: string) {
-
+  unsubscribeEmailLink(email: string, previousToken: string) {
+    const contact: ContactInterface = tools.findByEmail(this.contacts, email);
+    
+    if (contact.token === previousToken) {
+      contact.emailEnabled = false;
+      contact.token = generateToken();
+      contact.unsubscribeSource = 'EMAIL_LINK'
+      console.log('contact: ', this.contacts);
+      return tools.statusMessage(true, messages.unsubscribe.emailUser);
+    } else {
+      return tools.statusMessage(false, messages.unsubscribe.token);
+    }
   }
 
   unsubscribeEmailCrm(email: string) {
@@ -50,8 +60,10 @@ export class Account implements AccountInterface {
 
   unsubscribePhoneLink(phoneNumber: string, previousToken: string): MessageInterface {
     const contact: ContactInterface = tools.findByPhone(this.contacts, phoneNumber);
+    console.log('contact: ', contact);
     if (contact.token === previousToken) {
       contact.phoneNumberEnabled = false;
+      contact.unsubscribeSource = 'SMS_LINK'
       contact.token = generateToken();
       return tools.statusMessage(true, messages.unsubscribe.phoneUser);
     } else {

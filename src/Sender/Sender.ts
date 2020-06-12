@@ -20,6 +20,7 @@ export type EncryptedDataStructure = {
   user: boolean;
   token: string;
   phoneNumber?: string;
+  email?: string;
 };
 
 export type SenderConstructor = {

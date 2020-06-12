@@ -131,12 +131,17 @@ export class Application {
     const decryptedLink = decrypt(link);
     const linkData = decryptedLink.replace(/\s+/g, '');
     const linkObject: EncryptedDataStructure = JSON.parse(linkData);
+    console.log('linkObject: ', linkObject);
+    let result
     // refactor this validation
     if (linkObject.type == 'sms' && linkObject.user && linkObject.phoneNumber) {
       const account = this.getAccount(linkObject.accountId);
-      const result = account.unsubscribePhoneLink(linkObject.phoneNumber, linkObject.token);
+      result = account.unsubscribePhoneLink(linkObject.phoneNumber, linkObject.token);
+    } else if (linkObject.type == 'letter' && linkObject.user && linkObject.email) {
+      const account = this.getAccount(linkObject.accountId);
+      result = account.unsubscribeEmailLink(linkObject.email, linkObject.token);
     }
-    // console.log('linkObject: ', linkObject);
+    console.log('result: ', result);
   }
 
   resubscribe() {

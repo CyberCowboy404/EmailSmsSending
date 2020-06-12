@@ -24,7 +24,8 @@ const messages = {
   },
   unsubscribe: {
     token: 'Tokens mismatch',
-    phoneUser: 'User sucessfully unsubcribed'
+    phoneUser: 'User sucessfully unsubcribed from sms',
+    emailUser: 'User sucessfully unsubcribed from email',
   }
 };
 
