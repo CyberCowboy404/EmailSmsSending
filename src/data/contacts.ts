@@ -7,6 +7,7 @@ const contacts1 = (accountId: string) => {
     name: 'Simon',
     email: 'simon@gmail.com',
     emailEnabled: true,
+    phoneNumberEnabled: true,
     accountId,
     createTime: tools.generateUnixTimeStamp(),
     updateTime: tools.generateUnixTimeStamp()
@@ -20,6 +21,7 @@ const contacts2 = (accountId: string) => {
     name: 'Simon',
     email: 'simon@gmail.com',
     emailEnabled: true,
+    phoneNumberEnabled: true,
     accountId,
     createTime: tools.generateUnixTimeStamp(),
     updateTime: tools.generateUnixTimeStamp()
@@ -33,6 +35,7 @@ const contacts3 = (accountId: string) => {
     name: 'Simon',
     email: 'simon@gmail.com',
     emailEnabled: true,
+    phoneNumberEnabled: true,
     accountId,
     createTime: tools.generateUnixTimeStamp(),
     updateTime: tools.generateUnixTimeStamp()
@@ -45,6 +48,7 @@ const contacts4 = (accountId: string) => {
     name: 'Simon',
     email: 'simon@gmail.com',
     emailEnabled: true,
+    phoneNumberEnabled: true,
     accountId,
     createTime: tools.generateUnixTimeStamp(),
     updateTime: tools.generateUnixTimeStamp()

@@ -4,11 +4,10 @@ import { Admin, userInfo } from './Admin';
 import { Account, AccountInfo } from './Account';
 import { Sms } from './Sender/Sms';
 import { Letter } from './Sender/Letter';
-import { SmsInterface } from './interfaces/Sms.interface';
-import { LetterInterface } from './interfaces/Letter.interface';
-import { CreateContactInterface } from './interfaces/Contact.interface';
+import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import * as _ from 'lodash';
+import { every, isEmpty, remove, clone } from 'lodash';
+import contact from './data/contacts';
 
 type AccessArguments = {
   adminId: string;
@@ -22,8 +21,8 @@ interface CreateSenderObjectInterface extends AccessArguments {
 export class Application {
   private admins: Admin[] = [];
   private accounts: Account[] = [];
-  private sms: SmsInterface[] = [];
-  private letters: LetterInterface[] = [];
+  private sms: Sms[] = [];
+  private letters: Letter[] = [];
   constructor() {
 
   }
@@ -76,7 +75,7 @@ export class Application {
     // phoneNumberEnabled === true || emailEnabled === true, both must be true else we don't allow to add such contact
     const contacts = this.accounts.map(account => account.contacts);
 
-    if (!_.every(contacts, _.isEmpty)) {
+    if (!every(contacts, isEmpty)) {
       // check contacts if they available to receive messages
     }
     const admin = this.getAdminById(adminId);
@@ -92,34 +91,44 @@ export class Application {
     // todo:
     // - do all validations relative parameters
     const contacts = this.getContacts({ adminId, accountId });
-    const sms = new Sms('sms', contacts);
-    const status = sms.create(content);
-    return status;
+    const sms = new Sms({ type: 'sms', contacts, content });
+    this.sms.push(sms);
+    return tools.statusMessage(true, messages.sender.created('Sms'), { id: sms.id });
   }
 
-  sendSms() {
-
+  sendSms(smsId: string) {
+    const sms = this.sms.find(elem => elem.id == smsId);
+    if (sms) {
+      return sms.send();
+    }
   }
   createLetter({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     // todo:
     // - do all validations relative parameters
     const contacts = this.getContacts({ adminId, accountId });
-    const letter = new Letter('letter', contacts);
-    const status = letter.create(content);
-    return status;
+    const letter = new Letter({ type: 'letter', contacts, content });
+    this.letters.push(letter);
+    return tools.statusMessage(true, messages.sender.created('Letter'), { id: letter.id });
   }
-  sendLetter({ adminId, accountId }: AccessArguments) {
-
+  sendLetter(letterId: string) {
+    const letter = this.letters.find(elem => elem.id == letterId);
+    if (letter) {
+      return letter.send();
+    }
   }
-
   private getContacts({ adminId, accountId }: AccessArguments) {
     // todo
     // parametr validation
     const admin = this.getAdminById(adminId);
     const account = admin.getAccount(accountId);
-    const contacts = account?.getContacts || [];
+    const contacts = account?.getContacts() || [];
+    const cleanContacts = contacts.map(this.removeUnsubscribed);
 
-    return contacts;
+    return cleanContacts;
   }
-
+  private removeUnsubscribed(elem: ContactInterface): ContactInterface | undefined {
+    if (elem.emailEnabled && elem.phoneNumberEnabled) {
+      return elem;
+    }
+  }
 }

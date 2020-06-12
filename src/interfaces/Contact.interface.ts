@@ -9,6 +9,7 @@ export interface ContactInterface {
   accountId: string;
   createTime: number;
   updateTime: number;
+  token?: string;
   unsubscribeSource?: UnsubscribeSource
 }
 export interface CreateContactInterface {

@@ -1,59 +1,69 @@
-import { LetterInterface } from '../interfaces/Letter.interface';
-import { SmsInterface } from '../interfaces/Sms.interface';
 import { ContactInterface } from '../interfaces/Contact.interface';
 import { MessageInterface } from '../interfaces/Messages.iterface';
 import tools from '../helpers/tools';
 import messages from '../helpers/messages';
-import * as _ from 'lodash';
+import { cloneDeep } from 'lodash';
+import { config } from '../config/config';
+import { encrypt } from '../helpers/encryption';
 
+export type SenderParams = {
+  smsId: string;
+  accountId: string;
+};
+
+export type SenderConstructor = {
+  type: type;
+  contacts: ContactInterface[];
+  content: string;
+}
 export type type = 'sms' | 'letter';
 export class Sender {
   public type: string;
-  public data: SmsInterface[] | LetterInterface[] = [];
-  contacts: ContactInterface[];
-  constructor(type: type, contacts: ContactInterface[]) {
+  private contacts: ContactInterface[];
+  id: string;
+  content: string;
+  updateTime: number;
+  createTime: number;
+  sentTime: any;
+  status?: string;
+  constructor({ type, contacts, content }: SenderConstructor) {
     this.type = type;
     this.contacts = contacts;
-  }
-  create(content: string): MessageInterface {
-    // todo:
-    // - add validations
-    // - return message that data is created or no
-    // - show error if contacts not exists
     const id = tools.generateUniqId();
     const ts = tools.generateUnixTimeStamp();
-    const cleanContacts = _.remove(this.contacts, this.removeUnsubscribed);
-    const data = {
-      id,
-      content,
-      contacts: cleanContacts,
-      updateTime: ts,
-      createTime: ts,
-      sentTime: 0
-    };
-
-    this.data.push(data);
-
-    return tools.statusMessage(true, messages.sender.created(this.type), data);
+    this.id = id;
+    this.content = content;
+    this.updateTime = ts;
+    this.createTime = ts;
+    this.sentTime = 0;
   }
 
-  send(id: string): MessageInterface {
+  send(): MessageInterface {
+    // this.contacts
+    const contacts = cloneDeep(this.contacts);
+    console.log('contacts: ', contacts);
+    const sent = contacts.map(contact => {
+      const stringToEncrypt: string = `{
+        accountId: ${contact.accountId},
+        contactId: ${contact.id},
+        type: ${this.type},
+        user: true
+      }`;
+      const token = encrypt(stringToEncrypt);
+      return {
+        message: `${this.content} in order to unsubscribe follow this link ${config.website}/?token=${token}`
+      };
+    });
+    
     // todo:
     // check if we get everything right
-    const sender: SmsInterface | LetterInterface = tools.findById(this.data, id);
+    const ts = tools.generateUnixTimeStamp();
+    this.sentTime = ts;
+    this.updateTime = ts;
+    this.status = 'DELIVERED';
 
-    if (sender) {
-      const ts = tools.generateUnixTimeStamp();
-      sender.sentTime = ts;
-      sender.updateTime = ts;
-      sender.status = 'DELIVERED';
-      return tools.statusMessage(true, messages.sender.sent);
-    }
+    return tools.statusMessage(true, messages.sender.sent, sent);
 
-    return tools.statusMessage(false, messages.sender.notSent);
-  }
-
-  private removeUnsubscribed(elem: ContactInterface): boolean {
-    return !elem.emailEnabled || !elem.phoneNumberEnabled;
+    // return tools.statusMessage(false, messages.sender.notSent);
   }
 }

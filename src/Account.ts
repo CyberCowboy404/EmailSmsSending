@@ -3,6 +3,8 @@ import { ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import tools from './helpers/tools';
 import messages from './helpers/messages';
+import { cloneDeep } from 'lodash';
+import { generateToken } from './helpers/encryption';
 
 export type AccountInfo = {
   adminId: string;
@@ -28,11 +30,13 @@ export class Account implements AccountInterface {
   // Return message about status of creating
   createContact(contact: ContactInterface): MessageInterface {
     // todo
-    this.contacts.push(contact);
-    return tools.statusMessage(true, messages.contact.created, contact)
+    const formatContact = cloneDeep(contact);
+    formatContact.token = generateToken();
+    this.contacts.push(formatContact);
+    return tools.statusMessage(true, messages.contact.created, contact);
   }
 
-  get getContacts(): ContactInterface[] {
+  getContacts(): ContactInterface[] {
     return this.contacts;
   }
 

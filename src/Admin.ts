@@ -1,10 +1,7 @@
 import { AdminInterface } from './interfaces/Admin.interface';
-import { AccountInterface } from './interfaces/Account.interface';
 import tools from './helpers/tools';
 import messages from './helpers/messages';
-import * as _ from 'lodash';
 import { Account } from './Account';
-import { ContactInterface } from './interfaces/Contact.interface';
 
 export type userInfo = {
   name: string;

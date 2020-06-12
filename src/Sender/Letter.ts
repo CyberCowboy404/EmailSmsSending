@@ -1,8 +1,6 @@
-import { Sender } from './Sender';
-import { ContactInterface } from '../interfaces/Contact.interface';
-import { type } from './Sender';
+import { Sender, SenderConstructor } from './Sender';
 export class Letter extends Sender {
-  constructor(type: type, contacts: ContactInterface[]) {
-    super(type, contacts);
+  constructor({ type, contacts, content }: SenderConstructor) {
+    super({ type, contacts, content });
   }
 }

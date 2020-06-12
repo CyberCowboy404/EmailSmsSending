@@ -1,6 +1,8 @@
 import { Application } from './Application';
 import data from './data/contacts';
+import { decrypt, encrypt, generateToken } from './helpers/encryption';
 
+console.log(generateToken());
 const app = new Application();
 
 app.createAdmin({ name: 'John', email: 'john@gmail.com' });
@@ -16,13 +18,21 @@ if (admin) {
 
     app.createContact({ adminId, accountId, contact: data.contacts1(accountId) });
     app.createContact({ adminId, accountId, contact: data.contacts2(accountId) });
-    app.createContact({ adminId, accountId, contact: data.contacts3(accountId) });
-    app.createContact({ adminId, accountId, contact: data.contacts4(accountId) });
+
     const smsContent: string = 'I\'am sms';
     const letterContent: string = 'I\'am letter';
-    const sms = app.createSms({ accountId, adminId, content: smsContent });
+
     const letter = app.createLetter({ accountId, adminId, content: letterContent });
-    console.log('sms: ', sms);
-    console.log('letter: ', letter);
+    const sms = app.createSms({ accountId, adminId, content: smsContent });
+
+    const smsId = sms.data.id;
+    const letterId = letter.data.id;
+
+    const sentLetter = app.sendLetter(letterId);
+    const sentSms = app.sendSms(smsId);
+    
+    console.log('sentSms: ', sentSms);
+    console.log('sentLetter: ', sentLetter);
+
   }
 }
