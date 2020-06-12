@@ -32,4 +32,8 @@ export class Account implements AccountInterface {
     return tools.statusMessage(true, messages.contact.created, contact)
   }
 
+  get getContacts(): ContactInterface[] {
+    return this.contacts;
+  }
+
 }

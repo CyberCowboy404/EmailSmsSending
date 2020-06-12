@@ -2,13 +2,24 @@ import tools from './helpers/tools';
 import messages from './helpers/messages';
 import { Admin, userInfo } from './Admin';
 import { Account, AccountInfo } from './Account';
+import { Sms } from './Sender/Sms';
+import { Letter } from './Sender/Letter';
+import { SmsInterface } from './interfaces/Sms.interface';
+import { LetterInterface } from './interfaces/Letter.interface';
 import { CreateContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import * as _ from 'lodash';
 
+type AccessArguments = {
+  adminId: string;
+  accountId: string;
+}
+
 export class Application {
   private admins: Admin[] = [];
   private accounts: Account[] = [];
+  private sms: SmsInterface[] = [];
+  private letters: LetterInterface[] = [];
   constructor() {
 
   }
@@ -53,14 +64,14 @@ export class Application {
   }
 
   // adminId is like active user
-  createContact({accountId, adminId, contact}: CreateContactInterface) {
+  createContact({ accountId, adminId, contact }: CreateContactInterface) {
     //todo:
     // - check account id amoung all bound accounts if account exists
     // check if contacts are empty
     // - before contact will be created check if we have such contact and he can accept messages
     // phoneNumberEnabled === true || emailEnabled === true, both must be true else we don't allow to add such contact
     const contacts = this.accounts.map(account => account.contacts);
-    
+
     if (!_.every(contacts, _.isEmpty)) {
       // check contacts if they available to receive messages
     }
@@ -70,6 +81,34 @@ export class Application {
     if (account) {
       return account.createContact(contact);
     }
+
+  }
+
+  createSms({ adminId, accountId }: AccessArguments): MessageInterface {
+    // todo:
+    // - do all validations relative parameters
+    const admin = this.getAdminById(adminId);
+    const account = admin.getAccount(accountId);
+    const contacts = account?.getContacts || [];
+    const sms = new Sms('sms', contacts);
+    const status = sms.create('I\'m sms');
+    return status;
+  }
+
+  sendSms() {
+
+  }
+  createLetter({ adminId, accountId }: AccessArguments): MessageInterface {
+    // todo:
+    // - do all validations relative parameters
+    const admin = this.getAdminById(adminId);
+    const account = admin.getAccount(accountId);
+    const contacts = account?.getContacts || [];
+    const letter = new Letter('letter', contacts);
+    const status = letter.create('I\'m email');
+    return status;
+  }
+  sendLetter({ adminId, accountId }: AccessArguments) {
 
   }
 

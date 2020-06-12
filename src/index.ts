@@ -14,10 +14,16 @@ if (admin) {
   const account = app.createAccount({ name: 'My Account', adminId: admin.id });
   if (account) {
     const accountId = account.data.id;
-    
-    app.createContact({ adminId: admin.id, accountId, contact: data.contacts1(accountId) });
-    app.createContact({ adminId: admin.id, accountId, contact: data.contacts2(accountId) });
-    app.createContact({ adminId: admin.id, accountId, contact: data.contacts3(accountId) });
-    app.createContact({ adminId: admin.id, accountId, contact: data.contacts4(accountId) });
+    const adminId = admin.id;
+
+    app.createContact({ adminId, accountId, contact: data.contacts1(accountId) });
+    app.createContact({ adminId, accountId, contact: data.contacts2(accountId) });
+    app.createContact({ adminId, accountId, contact: data.contacts3(accountId) });
+    app.createContact({ adminId, accountId, contact: data.contacts4(accountId) });
+
+    const sms = app.createSms({ accountId, adminId });
+    const letter = app.createLetter({ accountId, adminId });
+    console.log('sms: ', sms);
+    console.log('letter: ', letter);
   }
 }

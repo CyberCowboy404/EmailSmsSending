@@ -14,6 +14,13 @@ const messages = {
   },
   contact: {
     created: 'Contact created'
+  },
+  sender: {
+    created(type: string) {
+      return `${type} is created`
+    },
+    sent: 'Data has been sent',
+    notSent: 'Data not sent'
   }
 };
 

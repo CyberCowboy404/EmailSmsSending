@@ -1,9 +1,10 @@
-export default interface Sms {
+import { ContactInterface } from '../interfaces/Contact.interface';
+export interface SmsInterface {
   id: string;
   content: string;
-  contacts: string;
-  sendTime: string;
-  status: status;
+  contacts: ContactInterface[];
+  sentTime?: number;
+  status?: status;
   updateTime: number;
   createTime: number;
 }

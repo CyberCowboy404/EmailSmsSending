@@ -1,9 +1,10 @@
-export default interface Letter {
+import { ContactInterface } from '../interfaces/Contact.interface';
+export interface LetterInterface {
   id: string;
   content: string;
-  contacts: string;
-  sentTime: string;
-  status: status;
+  contacts: ContactInterface[];
+  sentTime?: number;
+  status?: status;
   updateTime: number;
   createTime: number;
 }
