@@ -242,6 +242,14 @@ describe("Application class", () => {
       const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
       const contentSms = 'I will not spam you email';
       const contentLetter = 'I will not spam you email';
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+        email: 'order@gmail.com'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact1 });
+
       const sms = app.createSms({ adminId, accountId, content: contentSms }).info;
       const letter = app.createLetter({ adminId, accountId, content: contentLetter }).info;
 
@@ -276,7 +284,7 @@ describe("Application class", () => {
       expect(letter.contacts).not.toBeDefined();
       expect(letter.content === contentSms).toBeFalsy();
       expect(app.letters.length > 0).toBeFalsy();
-      
+
       let sms = app.createSms({ adminId, accountId: '123', content: contentSms }).info;
       let letter = app.createLetter({ adminId, accountId: '281', content: contentLetter }).info;
 

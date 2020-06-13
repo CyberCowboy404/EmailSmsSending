@@ -45,7 +45,8 @@ const messages = {
       return `${type} is created`
     },
     sent: 'Data has been sent',
-    notSent: 'Data not sent'
+    notSent: 'Data not sent',
+    contactsNotExists: 'You should add at least 1 contact before creation'
   },
   unsubscribe: {
     token: 'Tokens mismatch',

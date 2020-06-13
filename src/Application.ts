@@ -8,7 +8,7 @@ import { EncryptedDataStructure } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { flatten } from 'lodash';
+import { flatten, isEmpty } from 'lodash';
 import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
@@ -173,6 +173,7 @@ export class Application {
   // check if id exist and show message like: you should create before
   createLetter({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     const preparedContacts = this.contentCreation({ adminId, accountId, content });
+    console.log('preparedContacts: ', preparedContacts);
     if (!preparedContacts.ok) {
       return this.failedValidation(preparedContacts.info);
     }
@@ -262,6 +263,11 @@ export class Application {
       return this.failedValidation(validation.info);
     }
     const contacts = this.getContacts({ adminId, accountId });
+    
+    if (isEmpty(contacts)) {
+      return tools.statusMessage(false, messages.sender.contactsNotExists);
+    }
+
     return tools.statusMessage(true, '', contacts);
 
   }
