@@ -76,12 +76,12 @@ export class Account implements AccountInterface {
 
   resubscribeContact({ email = '', phoneNumber = '' }: UserInformation): MessageInterface {
     const contact = tools.findByEmail(this.contacts, email) || tools.findByPhone(this.contacts, phoneNumber);
-    if (contact) {
+    if (contact && contact.unsubscribeSource === 'CRM') {
       contact.phoneNumberEnabled = !!phoneNumber;
       contact.emailEnabled = !!email;
       return tools.statusMessage(true, messages.resubscribe);
     } else {
-      return tools.statusMessage(false, messages.error.contactNotFound);
+      return tools.statusMessage(false, messages.error.cantResubscribe);
     }
   }
 

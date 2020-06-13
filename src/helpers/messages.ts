@@ -1,7 +1,8 @@
 const messages = {
   error: {
     name: 'You should specify a name',
-    contactNotFound: 'Contact not found'
+    contactNotFound: 'Contact not found',
+    cantResubscribe: 'Resubscription failed'
   },
   admin: {
     // todo: create this like a function in order to log more detailed message
