@@ -48,14 +48,19 @@ export class Sender {
     this.createTime = ts;
     this.sentTime = 0;
   }
-  //todo: skip contacts if emailEbled: false && phoneEnabled:false
+  
   send(): MessageInterface {
     if (isEmpty(this.contacts)) {
       this.status = 'FAILED';
       return tools.statusMessage(false, messages.sender.contactsNotExists);
     }
-    // this.contacts
+    const notSent: ContactInterface[] = []
+    
     const sent = this.contacts.map(contact => {
+      if (!contact.phoneNumberEnabled || !contact.emailEnabled) {
+        notSent.push(contact);
+        return;
+      }
       //make string like key:value:key:value in order to easely convert it to object
       let unsubscribeSource = this.type === 'sms' ? 'SMS_LINK' : 'EMAIL_LINK';
       const stringToEncrypt: string = `{
@@ -79,6 +84,6 @@ export class Sender {
     this.updateTime = ts;
     this.status = 'DELIVERED';
 
-    return tools.statusMessage(true, messages.sender.sent, sent);
+    return tools.statusMessage(true, messages.sender.sent, { sent, notSent });
   }
 }

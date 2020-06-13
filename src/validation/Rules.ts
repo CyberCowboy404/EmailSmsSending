@@ -25,6 +25,7 @@ export function isParamsEmpty({ validateData, errorArray = [] }: ValidationData)
     return errorMessage(messages.validation.emptyParams, { validateData, errorArray });
   }
 }
+
 export function isValidEmail({ validateData, errorArray = [] }: ValidationData): ValidationData {
   const re = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
 
@@ -87,6 +88,7 @@ export function isContactsExists(this: ContactInterface[], { validateData, error
     return errorMessage(messages.sender.contactsNotExists, { validateData, errorArray });
   }
 }
+
 export function isSmsCreated(this: Sms[], { validateData, errorArray }: ValidationData): ValidationData {
   const sms: Sms[] = this;
   const smsExists = tools.findById(sms, validateData.params.smsId);
@@ -139,6 +141,7 @@ export function errorHandler({ errorArray = [] }: ValidationData): MessageInterf
     return tools.statusMessage(true, messages.validation.passed);
   }
 }
+
 export function errorMessage(message: string, { validateData, errorArray = [] }: ValidationData) {
   return {
     validateData,
@@ -148,6 +151,7 @@ export function errorMessage(message: string, { validateData, errorArray = [] }:
     ]
   }
 }
+
 export function nextData({ validateData, errorArray = [] }: ValidationData) {
   return {
     validateData,
