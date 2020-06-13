@@ -79,31 +79,54 @@ Use `info` object to get additional information and id's
 
 ### To send messages
 
-Create contact first in order to send a message
+In order to send message you have to create contact first.
+If email address or phone number are in blacklist, those contacts will not be added to the account.
+
 ```js
 const app = new Application();
 
 const adminId = app.createAdmin({ name: 'John', email: 'john@gmail.com' }).info.id;
 const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
 const contact = {
   name: 'George',
   phoneNumber: '+123456789',
   email: 'george@gmail.com'
 };
 
-const status = app.createContact({ accountId, adminId, contact });
+app.createContact({ accountId, adminId, contact });
 
 const contentSms = 'I will not spam you sms';
 const contentLetter = 'I will not spam you email';
 
-const sms = app.createSms({ adminId, accountId, content: contentSms }).info;
-const letter = app.createLetter({ adminId, accountId, content: contentLetter }).info;
+const responseSms = app.sendSms({adminId, accountId, content: contentSms});
+const responseLetter = app.sendLetter({adminId, accountId, content: contentLetter});
+
 ```
 
-Also if some users were unsubscribed, application will add their in to global blacklist.
-If some email address or phone number are in blacklist, those contacts will not be added to any account.
+If some user unsubscribe, application will add his number/email to the global blacklist.
+During sms/letter creation app automatically import all your contacts for sending him a message.
 
-During sms/letter creation app automatically import all your contacts. That contacts will be using for sending.
+After sucessfull message send you'll get something like this
+
+```sh
+ message: 'I will not spam you email in order to unsubscribe follow this link https://www.someDummySite.com/?token=5ac6b64d177083563ff1abf5dcd01c3534a5d0dcf95ff88200c56084d4e6bfafa66f2c51f2bdffdf4455f4f99790cca00d805714ee9abfacaad94354261d0eb17e660fff4170383a034a93db9f240b7419d1b1a9b46986b3b4f05a7a1f8c0007ca3534320d6f7d561039b9971723ceeaab58ce63cfd8a934d11298202e0a7a751d3f41cf083e49a21e314d15748359994c168125b35800335b925f27edcbe4af95dad072de0464cebdad639ed459ba1a181c51f9876acff5b7d317cb2683721950463894003682458d45c3c0861587e44c747c83b3d75d4e361b364d346be728dfa9a88daabf8fd4c4e9423c66dc2b9425396200a197ee8826517d2e9e8d9a7466ea4b8afebe75215a43d365661f0c1295f9f1c1f55f41f6ae04e9a0425f876add1037580488787d31ddd0b6eb379419'
+```
+
+Where `/?token=` value is encrypted user data in such format
+
+```js
+`{
+  "accountId":"${contact.accountId}",
+  "contactId":"${contact.id}",
+  "phoneNumber": "${contact.phoneNumber || false}",
+  "email": "${contact.email || false}",
+  "unsubscribeSource": "${unsubscribeSource}",
+  "token":"${contact.token}"
+}`
+```
+
+Each contact has uniq token which have to match with account contact in order to unsubscribe.
 
 
 
