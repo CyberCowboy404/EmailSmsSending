@@ -1,4 +1,4 @@
-## TypeScript abstract application to send sms/email to contact lists
+## TypeScript application to send sms/email to contact lists
 
 ## Description
 You can create different Applications and create Admin and Accounts inside.
