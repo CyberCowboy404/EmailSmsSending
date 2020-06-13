@@ -1,4 +1,4 @@
-import { ContactInterface } from '../interfaces/Contact.interface';
+import { ContactInterface, UnsubscribeSource } from '../interfaces/Contact.interface';
 import { MessageInterface } from '../interfaces/Messages.iterface';
 import tools from '../helpers/tools';
 import messages from '../helpers/messages';
@@ -16,8 +16,7 @@ export type SenderParams = {
 export type EncryptedDataStructure = {
   accountId: string;
   contactId: string;
-  type: type;
-  user: boolean;
+  unsubscribeSource: UnsubscribeSource;
   token: string;
   phoneNumber?: string;
   email?: string;
@@ -53,16 +52,15 @@ export class Sender {
   send(): MessageInterface {
     // this.contacts
     const contacts = cloneDeep(this.contacts);
-    console.log('contacts: ', contacts);
     const sent = contacts.map(contact => {
       //make string like key:value:key:value in order to easely convert it to object
+      let unsubscribeSource = this.type === 'sms' ? 'SMS_LINK' : 'EMAIL_LINK';
       const stringToEncrypt: string = `{
         "accountId":"${contact.accountId}",
         "contactId":"${contact.id}",
-        "type":"${this.type}",
         "phoneNumber": "${contact.phoneNumber || false}",
         "email": "${contact.email || false}",
-        "user":"true",
+        "unsubscribeSource": "${unsubscribeSource}",
         "token":"${contact.token}"
       }`;
       const token = encrypt(stringToEncrypt);

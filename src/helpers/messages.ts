@@ -26,6 +26,9 @@ const messages = {
     token: 'Tokens mismatch',
     phoneUser: 'User sucessfully unsubcribed from sms',
     emailUser: 'User sucessfully unsubcribed from email',
+    emailCRM: 'User sucessfully from email crm',
+    phoneCRM: 'User sucessfully from phone crm',
+    contactNotFound: 'Contact not found'
   }
 };
 

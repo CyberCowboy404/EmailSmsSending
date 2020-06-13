@@ -36,18 +36,21 @@ export class Account implements AccountInterface {
     return tools.statusMessage(true, messages.contact.created, contact);
   }
 
-  get getContacts(): ContactInterface[] {
+  get getContacts() {
     return this.contacts;
   }
 
+  // todo:
+  // I'm looking object by email, but I should disable it not only in one
+  // but in all objects
   unsubscribeEmailLink(email: string, previousToken: string) {
+    // If I want find in all collections probably I should do it from application
     const contact: ContactInterface = tools.findByEmail(this.contacts, email);
-    
+
     if (contact.token === previousToken) {
       contact.emailEnabled = false;
       contact.token = generateToken();
-      contact.unsubscribeSource = 'EMAIL_LINK'
-      console.log('contact: ', this.contacts);
+      contact.unsubscribeSource = 'EMAIL_LINK';
       return tools.statusMessage(true, messages.unsubscribe.emailUser);
     } else {
       return tools.statusMessage(false, messages.unsubscribe.token);
@@ -55,15 +58,24 @@ export class Account implements AccountInterface {
   }
 
   unsubscribeEmailCrm(email: string) {
-
+    const contact: ContactInterface = tools.findByEmail(this.contacts, email);
+    if (contact) {
+      contact.emailEnabled = false;
+      contact.unsubscribeSource = 'CRM';
+      return tools.statusMessage(true, messages.unsubscribe.emailCRM);
+    } else {
+      return tools.statusMessage(true, messages.unsubscribe.contactNotFound);
+    }
   }
 
+  // todo:
+  // Unsubscribe by email not only from one object but in all collections
   unsubscribePhoneLink(phoneNumber: string, previousToken: string): MessageInterface {
+    // should I do this logic here?
     const contact: ContactInterface = tools.findByPhone(this.contacts, phoneNumber);
-    console.log('contact: ', contact);
     if (contact.token === previousToken) {
       contact.phoneNumberEnabled = false;
-      contact.unsubscribeSource = 'SMS_LINK'
+      contact.unsubscribeSource = 'SMS_LINK';
       contact.token = generateToken();
       return tools.statusMessage(true, messages.unsubscribe.phoneUser);
     } else {
@@ -72,7 +84,14 @@ export class Account implements AccountInterface {
   }
 
   unsubscribePhoneCrm(phoneNumber: string) {
-
+    const contact: ContactInterface = tools.findByPhone(this.contacts, phoneNumber);
+    if (contact) {
+      contact.phoneNumberEnabled = false;
+      contact.unsubscribeSource = 'CRM';
+      return tools.statusMessage(true, messages.unsubscribe.phoneCRM);
+    } else {
+      return tools.statusMessage(true, messages.unsubscribe.contactNotFound);
+    }
   }
 
   resubscribeContact(email: string, phoneNumber: string) {
