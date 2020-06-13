@@ -264,6 +264,28 @@ describe("Application class", () => {
       expect(app.letters.length > 0).toBeTruthy();
     });
 
+    it('should not create sms and letter if no contacts', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contentSms = 'I will not spam you email';
+      const contentLetter = 'I will not spam you email';
+
+      const sms = app.createSms({ adminId, accountId, content: contentSms }).info;
+      const letter = app.createLetter({ adminId, accountId, content: contentLetter }).info;
+
+      expect(sms instanceof Sms).toBeFalsy();
+      expect(sms.contacts).toBeUndefined();
+      expect(sms.content === contentSms).toBeFalsy();
+      expect(app.sms.length > 0).toBeFalsy();
+
+      expect(letter instanceof Letter).toBeFalsy();
+      expect(letter.contacts).toBeUndefined();
+      expect(letter.content === contentLetter).toBeFalsy();
+      expect(app.letters.length > 0).toBeFalsy();
+    });
+
     it('should not create letter and sms', () => {
       const app = new Application();
       const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
