@@ -7,61 +7,15 @@ import data from './data/contacts';
 const app = new Application();
 
 app.createAdmin({ name: 'John', email: 'john@gmail.com' });
-const admin = app.getAdminByEmail('john@gmail.com');
+app.createAdmin({ name: 'Valera', email: 'john@gmail.com' });
+app.createAdmin({ name: 'Valera', email: 'john@gmail.com' });
+const account = app.createAccount({ adminId: '123', name: 'My Account' });
+console.log('account: ', account);
+// const admin = app.getAdminByEmail('john@gmail.com');
+// console.log('admin: ', admin);
 
-if (admin) {
-  // create account and bound it to admin by admin id
-  const account = app.createAccount({ name: 'My Account', adminId: admin.id });
-  const account2 = app.createAccount({ name: 'My Account2 ', adminId: admin.id });
-  if (account && account2) {
-    const accountId = account.info.id;
-    const account2Id = account2.info.id;
-    const adminId = admin.id;
+// if (admin) {
+//   // create account and bound it to admin by admin id
+//   const account = app.createAccount({ name: 'My Account', adminId: admin.id });
 
-    app.createContact({ adminId, accountId, contact: data.contacts1(accountId) });
-    app.createContact({ adminId, accountId, contact: data.contacts2(accountId) });
-    app.createContact({ adminId, accountId: account2Id, contact: data.contacts2(accountId) });
-    app.createContact({ adminId, accountId: account2Id, contact: data.contacts2(accountId) });
-
-    const smsContent: string = 'I\'am sms';
-    const letterContent: string = 'I\'am letter';
-
-    const letter = app.createLetter({ accountId, adminId, content: letterContent });
-    const sms = app.createSms({ accountId, adminId, content: smsContent });
-
-    const smsId = sms.info.id;
-    const letterId = letter.info.id;
-
-    const sentLetter = app.sendLetter(letterId);
-    // const sentSms = app.sendSms(smsId);
-
-    // console.log('sentSms: ', sentSms);
-    // const unsubcribe = sentSms?.data[0].message;
-    const unsubcribeLetter = sentLetter?.info[0].message;
-    // const unsubcribeLink = unsubcribe.replace(/.*token=/,'');
-    const unsubcribeLinkLetter = unsubcribeLetter.replace(/.*token=/, '');
-    const unsubscribeDataEmailCRM: any = {
-      email: 'jenifer@gmail.com',
-      type: 'letter',
-      accountId,
-      unsubscribeSource: 'CRM',
-    };
-    const unsubscribeDataPhoneCRM: any = {
-      phoneNumber: '+7808080808080',
-      type: 'sms',
-      accountId,
-      unsubscribeSource: 'CRM',
-    };
-    // const unsubResLet = app.unsubsribeLink(unsubcribeLinkLetter);
-    const unsibscribeCRMStatusLetter = app.unsubscribeCRM({ adminId, data: unsubscribeDataEmailCRM });
-    // console.log('unsibscribeCRMStatusLetter: ', unsibscribeCRMStatusLetter);
-    const unsibscribeCRMStatusSms = app.unsubscribeCRM({ adminId, data: unsubscribeDataPhoneCRM });
-
-    const resubscribed = app.resubscribe({ email: 'jenifer@gmail.com', adminId, accountId });
-    // console.log('resubscribed: ', resubscribed);
-    // console.log('unsibscribeCRMStatusSms: ', unsibscribeCRMStatusSms);
-    // console.log('unsubcribe: ', unsubcribe);
-    // console.log('sentLetter: ', sentLetter);
-
-  }
-}
+// }

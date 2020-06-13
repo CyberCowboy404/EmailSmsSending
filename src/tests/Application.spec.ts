@@ -2,6 +2,7 @@
 
 import { Application } from '../Application';
 import { Admin } from '../Admin';
+import { Account } from '../Account'
 import messages from '../helpers/messages'
 
 describe("Application class", () => {
@@ -31,10 +32,13 @@ describe("Application class", () => {
       const app = new Application();
       let statusMessage = app.createAdmin({ name: 'John', email: '' });
       expect(statusMessage.ok).toBeFalsy();
+      expect(app.admins.length === 0).toBeTruthy();
       let statusMessage = app.createAdmin({ name: '', email: 'John' });
       expect(statusMessage.ok).toBeFalsy();
+      expect(app.admins.length === 0).toBeTruthy();
       let statusMessage = app.createAdmin({ name: 'john', email: 'john' });
       expect(statusMessage.ok).toBeFalsy();
+      expect(app.admins.length === 0).toBeTruthy();
       let statusMessage = app.createAdmin({ name: 'john', email: 'john@i' });
       expect(statusMessage.ok).toBeFalsy();
       expect(app.admins.length === 0).toBeTruthy();
@@ -44,7 +48,26 @@ describe("Application class", () => {
       const admin1Status = app.createAdmin({ name: 'John', email: 'john@gmail.com' });
       expect(admin1Status.ok).toBeTruthy();
       const admin2Status = app.createAdmin({ name: 'Valera', email: 'john@gmail.com' });
+      // console.log('app: admin: 3', app);
       expect(admin2Status.ok).toBeFalsy();
+    });
+  });
+
+  describe('Account creation', () => {
+    it("should not create account if creating with not existed Admin", () => {
+      const app = new Application();
+      // Create admin
+      const email = 'test@i.ua';
+      const name = 'John';
+      const statusMessage = app.createAdmin({ email, name });
+      const admin = app.getAdminByEmail(email);
+
+      expect(statusMessage.ok).toBeTruthy();
+      expect(admin instanceof Admin).toBeTruthy();
+
+      const accountStatus = app.createAccount({ adminId: '123', name: 'My Account' });
+      expect(app.accounts.length === 0).toBeTruthy();
+      expect(accountStatus.ok).toBeFalsy();
     });
   });
 

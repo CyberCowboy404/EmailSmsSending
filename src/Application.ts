@@ -22,8 +22,9 @@ import {
   isParamsEmpty,
   errorHandler,
   isValidEmail,
-  ValidationData,
-  errorMessage
+  isUniqAdminEmail,
+  isAdminIdRight,
+  isAccountAlreadyLinked,
 } from './validation/Rules';
 
 
@@ -36,23 +37,34 @@ export class Application {
   // Set stores only uniq values.
   // We will use it to store all phones and emails
   private blacklist: BlackList[] = [];
+  // if we create several admins in parallel, we do not have time to validate the list of admins in time
   createAdmin({ name, email }: AdminConstructor): MessageInterface {
-    // todo:
-    // - check if email is uniq amoung another admin
+
+
+
     const validation: MessageInterface = pipe(
       isParamsEmpty,
       isValidEmail,
-      this.isUniqAdminEmail.bind(this),
+      isUniqAdminEmail.bind(this.admins),
       errorHandler
-    )({ validateData: { name, email }, errorArray: [] });
+    )({
+      validateData: {
+        params: {
+          name, email
+        },
+      },
+      errorArray: []
+    });
 
     if (!validation.ok) {
-      return tools.statusMessage(false, messages.validation.failed, validation.info);
+      // console.log(validation.info);
+      return this.failedValidation(validation.info);
     }
+
     const admin = new Admin({ name, email });
     this.admins.push(admin);
     const message = messages.admin.created({ name, email });
-    console.log('Admin Created: ', message);
+    // console.log('Admin Created: ', message);
     return tools.statusMessage(true, message);
   }
 
@@ -71,12 +83,29 @@ export class Application {
   }
 
   // Create account and ref it to admin
-  createAccount({ adminId, name }: AccountInfo): MessageInterface | null {
+  createAccount({ adminId, name }: AccountInfo): MessageInterface {
     // todo:
     // - check if parameters valid
     // - check if admin id exist amoung other admins id
     // - check this account will linked to only one admin
     // - return null if bad validation
+    const validation: MessageInterface = pipe(
+      isParamsEmpty,
+      isAdminIdRight.bind(this.admins),
+      errorHandler
+    )({
+      validateData: {
+        params: {
+          name,
+          adminId
+        }
+      },
+      errorArray: []
+    });
+
+    if (!validation.ok) {
+      return this.failedValidation(validation.info);
+    }
     const account = new Account({ adminId, name });
     const admin = this.getAdminById(adminId);
     // We can push it to admin but inside that method we shoudl check if account exists and etc...
@@ -220,15 +249,7 @@ export class Application {
       return elem;
     }
   }
-  private isUniqAdminEmail({ validateData, errorArray }: ValidationData): ValidationData {
-    const admin = tools.findByEmail(this.admins, validateData.email);
-    if (!admin && !admin?.length) {
-      return {
-        validateData,
-        errorArray,
-      }
-    } else {
-      return errorMessage(messages.admin.adminExists, { validateData, errorArray });
-    }
+  private failedValidation(info: string[]) {
+    return tools.statusMessage(false, messages.validation.failed, info);
   }
 }
