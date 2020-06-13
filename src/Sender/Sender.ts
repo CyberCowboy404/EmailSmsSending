@@ -48,7 +48,7 @@ export class Sender {
     this.createTime = ts;
     this.sentTime = 0;
   }
-
+  //todo: skip contacts if emailEbled: false && phoneEnabled:false
   send(): MessageInterface {
     if (isEmpty(this.contacts)) {
       this.status = 'FAILED';

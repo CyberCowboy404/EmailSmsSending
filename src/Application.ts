@@ -162,6 +162,7 @@ export class Application {
     }
     const contacts = beforeSend.info;
     const sms = new Sms({ type: 'sms', contacts, content });
+    
     this.sms.push(sms);
 
     return sms.send();
