@@ -1,6 +1,7 @@
 const messages = {
   error: {
     name: 'You should specify a name',
+    contactNotFound: 'Contact not found'
   },
   admin: {
     // todo: create this like a function in order to log more detailed message
@@ -27,9 +28,9 @@ const messages = {
     phoneUser: 'User sucessfully unsubcribed from sms',
     emailUser: 'User sucessfully unsubcribed from email',
     emailCRM: 'User sucessfully from email crm',
-    phoneCRM: 'User sucessfully from phone crm',
-    contactNotFound: 'Contact not found'
-  }
+    phoneCRM: 'User sucessfully from phone crm'
+  },
+  resubscribe: 'Contact resubscribed'
 };
 
 export default messages;

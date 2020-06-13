@@ -52,8 +52,12 @@ if (admin) {
     };
     // const unsubResLet = app.unsubsribeLink(unsubcribeLinkLetter);
     const unsibscribeCRMStatusLetter = app.unsubscribeCRM({ adminId, data: unsubscribeDataEmailCRM });
+    console.log('unsibscribeCRMStatusLetter: ', unsibscribeCRMStatusLetter);
     const unsibscribeCRMStatusSms = app.unsubscribeCRM({ adminId, data: unsubscribeDataPhoneCRM });
-    console.log('unsibscribeCRMStatusSms: ', unsibscribeCRMStatusSms);
+
+    const resubscribed = app.resubscribe({ email: 'jenifer@gmail.com', adminId, accountId });
+    console.log('resubscribed: ', resubscribed);
+    // console.log('unsibscribeCRMStatusSms: ', unsibscribeCRMStatusSms);
     // console.log('unsubcribe: ', unsubcribe);
     // console.log('sentLetter: ', sentLetter);
 

@@ -5,6 +5,7 @@ import tools from './helpers/tools';
 import messages from './helpers/messages';
 import { cloneDeep, isEmpty } from 'lodash';
 import { generateToken } from './helpers/encryption';
+import { UserInformation } from './interfaces/Application.interface';
 
 export type AccountInfo = {
   adminId: string;
@@ -27,6 +28,7 @@ export class Account implements AccountInterface {
   }
 
   // do additional validation before inserting
+  // if contact already exists update it with update time
   // Return message about status of creating
   createContact(contact: ContactInterface): MessageInterface {
     // todo
@@ -72,8 +74,15 @@ export class Account implements AccountInterface {
     return this.unsubscribeCRM(contact, messages.unsubscribe.phoneCRM);
   }
 
-  resubscribeContact(email: string, phoneNumber: string) {
-
+  resubscribeContact({ email = '', phoneNumber = '' }: UserInformation): MessageInterface {
+    const contact = tools.findByEmail(this.contacts, email) || tools.findByPhone(this.contacts, phoneNumber);
+    if (contact) {
+      contact.phoneNumberEnabled = !!phoneNumber;
+      contact.emailEnabled = !!email;
+      return tools.statusMessage(true, messages.resubscribe);
+    } else {
+      return tools.statusMessage(false, messages.error.contactNotFound);
+    }
   }
 
   private unsubscribeCRM(contact: ContactInterface, message: string) {
@@ -83,14 +92,14 @@ export class Account implements AccountInterface {
       contact.unsubscribeSource = 'CRM';
       return tools.statusMessage(true, message);
     } else {
-      return tools.statusMessage(true, messages.unsubscribe.contactNotFound);
+      return tools.statusMessage(true, messages.error.contactNotFound);
     }
   }
   private unsubscribeLink({ contact, message, unsubscribeSource, previousToken }: {
     contact: ContactInterface, message: string, unsubscribeSource: UnsubscribeSource, previousToken: string
   }): MessageInterface {
     if (isEmpty(contact)) {
-      return tools.statusMessage(false, messages.unsubscribe.contactNotFound);
+      return tools.statusMessage(false, messages.error.contactNotFound);
     }
     if (contact.token === previousToken) {
       contact.phoneNumberEnabled = false;

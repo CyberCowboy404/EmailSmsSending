@@ -5,36 +5,19 @@ import { Account, AccountInfo } from './Account';
 import { Sms } from './Sender/Sms';
 import { EncryptedDataStructure } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
-import { CreateContactInterface, ContactInterface, UnsubscribeSource } from './interfaces/Contact.interface';
+import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import { every, isEmpty, flatten } from 'lodash';
 import { decrypt } from './helpers/encryption';
+import {
+  BlackList,
+  CreateSenderObjectInterface,
+  UnsubscribeCRM,
+  UserInformation,
+  ResubscribeData,
+  AccessArguments
+} from './interfaces/Application.interface'
 
-type AccessArguments = {
-  adminId: string;
-  accountId: string;
-}
-type UnsubScribeCrmData = {
-  email?: string;
-  phoneNumber?: string;
-  accountId: string;
-  type: string;
-  unsubscribeSource: UnsubscribeSource;
-}
-type UnsubscribeCRMData = {
-  adminId: string;
-  data: UnsubScribeCrmData
-}
-
-interface CreateSenderObjectInterface extends AccessArguments {
-  content: string;
-}
-
-type BlackList = {
-  unsubscribeSource: UnsubscribeSource;
-  email?: string;
-  phoneNumber?: string;
-};
 
 export class Application {
   private admins: Admin[] = [];
@@ -45,9 +28,6 @@ export class Application {
   // Set stores only uniq values.
   // We will use it to store all phones and emails
   private blacklist: BlackList[] = [];
-  constructor() {
-
-  }
   // Return message that admin created
   createAdmin({ name, email }: userInfo): MessageInterface {
     // todo:
@@ -117,7 +97,6 @@ export class Application {
     if (account) {
       return account.createContact(contact);
     }
-
   }
 
   createSms({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
@@ -185,7 +164,7 @@ export class Application {
     }
     return result;
   }
-  unsubscribeCRM({ adminId, data }: UnsubscribeCRMData): MessageInterface | undefined {
+  unsubscribeCRM({ adminId, data }: UnsubscribeCRM): MessageInterface | undefined {
     // Validate all inputs
     const account = this.getAccountByAdmin({ adminId, accountId: data.accountId });
     let result;
@@ -196,8 +175,10 @@ export class Application {
     }
     return result;
   }
-  resubscribe() {
-
+  resubscribe({ accountId, adminId, email, phoneNumber }: ResubscribeData) {
+    // todo: validate all parameters
+    const account = this.getAccountByAdmin({ adminId, accountId });
+    return account?.resubscribeContact({ email, phoneNumber });
   }
   // todo:
   // - also check all contacts with same email or phone number and disable they too.
