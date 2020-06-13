@@ -5,6 +5,8 @@ import { Admin } from '../Admin';
 import { Account } from '../Account'
 import messages from '../helpers/messages'
 import { cloneDeep } from 'lodash'
+import { Sms } from '../Sender/Sms';
+import { Letter } from '../Sender/Letter';
 
 describe("Application class", () => {
   it("should init Application class properly", () => {
@@ -93,7 +95,8 @@ describe("Application class", () => {
       expect(accountStatus.ok).toBeFalsy();
     });
   });
-
+  //todo: find out how to create phoneNumber validation
+  //todo: phone number don't validating now
   describe('Contact creations', () => {
     it("should sucesfully create contact with email", () => {
       const app = new Application();
@@ -229,6 +232,65 @@ describe("Application class", () => {
         done();
       }, 1000);
     });
+  });
+
+  describe('Sender tests. Creation of sms and letters', () => {
+    it('should create sms and letter ', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contentSms = 'I will not spam you email';
+      const contentLetter = 'I will not spam you email';
+      const sms = app.createSms({ adminId, accountId, content: contentSms }).info;
+      const letter = app.createLetter({ adminId, accountId, content: contentLetter }).info;
+
+      expect(sms instanceof Sms).toBeTruthy();
+      expect(sms.contacts).toBeDefined();
+      expect(sms.content === contentSms).toBeTruthy();
+      expect(app.sms.length > 0).toBeTruthy();
+
+      expect(letter instanceof Letter).toBeTruthy();
+      expect(letter.contacts).toBeDefined();
+      expect(letter.content === contentLetter).toBeTruthy();
+      expect(app.letters.length > 0).toBeTruthy();
+    });
+
+    it('should not create letter and sms', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contentSms = 'I will not spam you email';
+      const contentLetter = 'I will not spam you email';
+
+      let sms = app.createSms({ adminId, accountId, content: '' }).info;
+      let letter = app.createLetter({ adminId, accountId, content: '' }).info;
+
+      expect(sms instanceof Sms).toBeFalsy();
+      expect(sms.contacts).not.toBeDefined();
+      expect(sms.content === contentLetter).toBeFalsy();
+      expect(app.sms.length > 0).toBeFalsy();
+
+      expect(letter instanceof Letter).toBeFalsy();
+      expect(letter.contacts).not.toBeDefined();
+      expect(letter.content === contentSms).toBeFalsy();
+      expect(app.letters.length > 0).toBeFalsy();
+      
+      let sms = app.createSms({ adminId, accountId: '123', content: contentSms }).info;
+      let letter = app.createLetter({ adminId, accountId: '281', content: contentLetter }).info;
+
+      expect(sms instanceof Sms).toBeFalsy();
+      expect(sms.contacts).not.toBeDefined();
+      expect(sms.content === contentLetter).toBeFalsy();
+      expect(app.sms.length > 0).toBeFalsy();
+
+      expect(letter instanceof Letter).toBeFalsy();
+      expect(letter.contacts).not.toBeDefined();
+      expect(letter.content === contentSms).toBeFalsy();
+      expect(app.letters.length > 0).toBeFalsy();
+    });
+
   });
 
 });

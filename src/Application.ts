@@ -29,6 +29,7 @@ import {
   isAdminOwnerOfAccount,
   isContactsProvided,
 } from './validation/Rules';
+import contact from './data/contacts';
 
 
 export class Application {
@@ -116,7 +117,9 @@ export class Application {
     const contacts = this.accounts.map(account => account.getContacts);
     return flatten(contacts);
   }
-
+  // todo: phone number validation
+  // todo: add email validation when finish with phone number
+  // todo: validation both of phone number and email 
   createContact({ accountId, adminId, contact }: CreateContactInterface) {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
@@ -140,9 +143,9 @@ export class Application {
     if (!validation.ok) {
       return this.failedValidation(validation.info);
     }
-    
+
     const account = this.getAccountByAdmin({ adminId, accountId });
-    
+
     if (account) {
       contact.accountId = accountId;
       return account.createContact(contact);
@@ -150,12 +153,14 @@ export class Application {
   }
 
   createSms({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
-    // todo:
-    // - do all validations relative parameters
-    const contacts = this.getContacts({ adminId, accountId });
+    const preparedContacts = this.contentCreation({ adminId, accountId, content });
+    if (!preparedContacts.ok) {
+      return this.failedValidation(preparedContacts.info);
+    }
+    const contacts = preparedContacts.info;
     const sms = new Sms({ type: 'sms', contacts, content });
     this.sms.push(sms);
-    return tools.statusMessage(true, messages.sender.created('Sms'), { id: sms.id });
+    return tools.statusMessage(true, messages.sender.created('Sms'), sms);
   }
 
   sendSms(smsId: string) {
@@ -167,13 +172,16 @@ export class Application {
   // todo:
   // check if id exist and show message like: you should create before
   createLetter({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
-    // todo:
-    // - do all validations relative parameters
-    const contacts = this.getContacts({ adminId, accountId });
+    const preparedContacts = this.contentCreation({ adminId, accountId, content });
+    if (!preparedContacts.ok) {
+      return this.failedValidation(preparedContacts.info);
+    }
+    const contacts = preparedContacts.info;
     const letter = new Letter({ type: 'letter', contacts, content });
     this.letters.push(letter);
-    return tools.statusMessage(true, messages.sender.created('Letter'), { id: letter.id });
+    return tools.statusMessage(true, messages.sender.created('Letter'), letter);
   }
+
   // todo:
   // check if id exist and show message like: you should create before
   sendLetter(letterId: string) {
@@ -229,6 +237,33 @@ export class Application {
     // todo: validate all parameters
     const account = this.getAccountByAdmin({ adminId, accountId });
     return account?.resubscribeContact({ email, phoneNumber });
+  }
+  private contentCreation({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
+    // function isParamsEmpty will handle if content will be empty
+    // todo: need additional validation if content structure will become more complex
+    const validation: MessageInterface = pipe(
+      isParamsEmpty,
+      isAdminExists.bind(this.admins),
+      isAccountExists.bind(this.accounts),
+      isAdminOwnerOfAccount.bind(this.getAdminById(adminId)),
+      errorHandler
+    )({
+      validateData: {
+        params: {
+          accountId,
+          adminId,
+          content
+        }
+      },
+      errorArray: []
+    });
+
+    if (!validation.ok) {
+      return this.failedValidation(validation.info);
+    }
+    const contacts = this.getContacts({ adminId, accountId });
+    return tools.statusMessage(true, '', contacts);
+
   }
   // todo:
   // - also check all contacts with same email or phone number and disable they too.
