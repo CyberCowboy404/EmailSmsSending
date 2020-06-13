@@ -1,12 +1,8 @@
-import { AdminInterface } from './interfaces/Admin.interface';
+import { AdminInterface, AdminConstructor } from './interfaces/Admin.interface';
 import tools from './helpers/tools';
 import messages from './helpers/messages';
 import { Account } from './Account';
 
-export type userInfo = {
-  name: string;
-  email: string;
-}
 export class Admin implements AdminInterface {
   id: string;
   name: string;
@@ -14,7 +10,7 @@ export class Admin implements AdminInterface {
   createTime: number;
   updateTime: number;
   accounts: Account[] = [];
-  constructor({ name, email }: userInfo) {
+  constructor({ name, email }: AdminConstructor) {
     const ts = tools.generateUnixTimeStamp();
     this.id = tools.generateUniqId();
     this.name = name;

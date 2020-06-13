@@ -1,6 +1,7 @@
 import tools from './helpers/tools';
 import messages from './helpers/messages';
-import { Admin, userInfo } from './Admin';
+import { Admin } from './Admin';
+import { AdminConstructor } from './interfaces/Admin.interface';
 import { Account, AccountInfo } from './Account';
 import { Sms } from './Sender/Sms';
 import { EncryptedDataStructure } from './Sender/Sender';
@@ -8,15 +9,16 @@ import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import { every, isEmpty, flatten } from 'lodash';
+import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
   BlackList,
   CreateSenderObjectInterface,
   UnsubscribeCRM,
-  UserInformation,
   ResubscribeData,
   AccessArguments
 } from './interfaces/Application.interface'
+import { isParamsEmpty, errorHandler, isValidEmail } from './validation/Rules';
 
 
 export class Application {
@@ -28,14 +30,23 @@ export class Application {
   // Set stores only uniq values.
   // We will use it to store all phones and emails
   private blacklist: BlackList[] = [];
-  // Return message that admin created
-  createAdmin({ name, email }: userInfo): MessageInterface {
+  createAdmin({ name, email }: AdminConstructor): MessageInterface {
     // todo:
-    // - check if parameters valid
-    // - check if email is uniq amount another admin
+    // - check if email is uniq amoung another admin
+    const validation: MessageInterface = pipe(
+      isParamsEmpty,
+      isValidEmail,
+      errorHandler
+    )({ validateData: { name, email }, errorArray: [] });
+
+    if (!validation.ok) {
+      return tools.statusMessage(false, messages.validation.failed, validation.info);
+    }
     const admin = new Admin({ name, email });
     this.admins.push(admin);
-    return tools.statusMessage(true, messages.admin.created);
+    const message = messages.admin.created({ name, email });
+    console.log('Admin Created: ', message);
+    return tools.statusMessage(true, message);
   }
 
   getAdminByEmail(email: string): Admin | null {

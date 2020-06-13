@@ -19,8 +19,8 @@ const tools = {
   findByPhone(collection: any[], phoneNumber: string) {
     return collection.find(elem => elem.phoneNumber == phoneNumber);
   },
-  statusMessage(ok: boolean, message: string, data: any = {}): MessageInterface {
-    return { ok, message, data }
+  statusMessage(ok: boolean, message: string, info: any = {}): MessageInterface {
+    return { ok, message, info }
   }
 }
 

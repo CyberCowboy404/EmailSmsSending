@@ -14,8 +14,8 @@ if (admin) {
   const account = app.createAccount({ name: 'My Account', adminId: admin.id });
   const account2 = app.createAccount({ name: 'My Account2 ', adminId: admin.id });
   if (account && account2) {
-    const accountId = account.data.id;
-    const account2Id = account2.data.id;
+    const accountId = account.info.id;
+    const account2Id = account2.info.id;
     const adminId = admin.id;
 
     app.createContact({ adminId, accountId, contact: data.contacts1(accountId) });
@@ -29,15 +29,15 @@ if (admin) {
     const letter = app.createLetter({ accountId, adminId, content: letterContent });
     const sms = app.createSms({ accountId, adminId, content: smsContent });
 
-    const smsId = sms.data.id;
-    const letterId = letter.data.id;
+    const smsId = sms.info.id;
+    const letterId = letter.info.id;
 
     const sentLetter = app.sendLetter(letterId);
     // const sentSms = app.sendSms(smsId);
 
     // console.log('sentSms: ', sentSms);
     // const unsubcribe = sentSms?.data[0].message;
-    const unsubcribeLetter = sentLetter?.data[0].message;
+    const unsubcribeLetter = sentLetter?.info[0].message;
     // const unsubcribeLink = unsubcribe.replace(/.*token=/,'');
     const unsubcribeLinkLetter = unsubcribeLetter.replace(/.*token=/, '');
     const unsubscribeDataEmailCRM: any = {
@@ -54,11 +54,11 @@ if (admin) {
     };
     // const unsubResLet = app.unsubsribeLink(unsubcribeLinkLetter);
     const unsibscribeCRMStatusLetter = app.unsubscribeCRM({ adminId, data: unsubscribeDataEmailCRM });
-    console.log('unsibscribeCRMStatusLetter: ', unsibscribeCRMStatusLetter);
+    // console.log('unsibscribeCRMStatusLetter: ', unsibscribeCRMStatusLetter);
     const unsibscribeCRMStatusSms = app.unsubscribeCRM({ adminId, data: unsubscribeDataPhoneCRM });
 
     const resubscribed = app.resubscribe({ email: 'jenifer@gmail.com', adminId, accountId });
-    console.log('resubscribed: ', resubscribed);
+    // console.log('resubscribed: ', resubscribed);
     // console.log('unsibscribeCRMStatusSms: ', unsibscribeCRMStatusSms);
     // console.log('unsubcribe: ', unsubcribe);
     // console.log('sentLetter: ', sentLetter);
