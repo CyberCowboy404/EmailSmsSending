@@ -42,8 +42,6 @@ export class Account implements AccountInterface {
     if (isContactExists) {
       const { id, email, phoneNumber } = isContactExists;
       contact.updateTime = tools.generateUnixTimeStamp();
-      console.log('isContactExists: ', isContactExists);
-      console.log('contact: ', contact);
       Object.assign(isContactExists, contact);
       return tools.statusMessage(true, messages.contact.updated({ id, email, phoneNumber }), isContactExists);
     } else {
