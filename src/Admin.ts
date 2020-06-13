@@ -26,6 +26,7 @@ export class Admin implements AdminInterface {
     return this.accounts.find(account => account.id == accountId);
   }
 
+// - check this account are linked to only one admin
   linkAccount(account: Account) {
     // todo:
     // check if account already exists

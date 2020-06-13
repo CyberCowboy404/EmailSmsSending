@@ -39,9 +39,6 @@ export class Application {
   private blacklist: BlackList[] = [];
   // if we create several admins in parallel, we do not have time to validate the list of admins in time
   createAdmin({ name, email }: AdminConstructor): MessageInterface {
-
-
-
     const validation: MessageInterface = pipe(
       isParamsEmpty,
       isValidEmail,
@@ -65,7 +62,7 @@ export class Application {
     this.admins.push(admin);
     const message = messages.admin.created({ name, email });
     // console.log('Admin Created: ', message);
-    return tools.statusMessage(true, message);
+    return tools.statusMessage(true, message, { id: admin.id });
   }
 
   getAdminByEmail(email: string): Admin | null {
@@ -85,10 +82,6 @@ export class Application {
   // Create account and ref it to admin
   createAccount({ adminId, name }: AccountInfo): MessageInterface {
     // todo:
-    // - check if parameters valid
-    // - check if admin id exist amoung other admins id
-    // - check this account will linked to only one admin
-    // - return null if bad validation
     const validation: MessageInterface = pipe(
       isParamsEmpty,
       isAdminIdRight.bind(this.admins),

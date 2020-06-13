@@ -14,7 +14,7 @@ export type ValidationData = {
 }
 
 export function isParamsEmpty({ validateData, errorArray = [] }: ValidationData): ValidationData {
-  if (!some(validateData, isEmpty)) {
+  if (!some(validateData.params, isEmpty)) {
     return nextData({ validateData, errorArray });
   } else {
     return errorMessage(messages.validation.emptyParams, { validateData, errorArray });

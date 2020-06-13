@@ -21,7 +21,7 @@ describe("Application class", () => {
       const statusMessage = app.createAdmin({ email, name });
       const successMessage = messages.admin.created({ name, email });
       const admin = app.getAdminByEmail(email);
-      expect(statusMessage).toEqual({ ok: true, message: successMessage, info: {} });
+      expect(statusMessage).toEqual({ ok: true, message: successMessage, info: { id: statusMessage.info.id } });
       expect(admin instanceof Admin).toBeTruthy();
       expect(admin.id.length == 9).toBeTruthy();
       expect(admin.createTime > 1).toBeTruthy();
@@ -54,6 +54,16 @@ describe("Application class", () => {
   });
 
   describe('Account creation', () => {
+    it("should create account", () => {
+      const app = new Application();
+      // Create admin
+      const email = 'test@i.ua';
+      const name = 'John';
+      const adminId = app.createAdmin({ email, name }).info.id;
+      const accountStatus = app.createAccount({ adminId, name: 'My Account' });
+      expect(app.accounts.length === 1).toBeTruthy();
+      expect(accountStatus.ok).toBeTruthy();
+    });
     it("should not create account if creating with not existed Admin", () => {
       const app = new Application();
       // Create admin
@@ -65,7 +75,11 @@ describe("Application class", () => {
       expect(statusMessage.ok).toBeTruthy();
       expect(admin instanceof Admin).toBeTruthy();
 
-      const accountStatus = app.createAccount({ adminId: '123', name: 'My Account' });
+      let accountStatus = app.createAccount({ adminId: admin.id, name: '' });
+      expect(app.accounts.length === 0).toBeTruthy();
+      expect(accountStatus.ok).toBeFalsy();
+
+      let accountStatus = app.createAccount({ adminId: '123', name: 'My Account' });
       expect(app.accounts.length === 0).toBeTruthy();
       expect(accountStatus.ok).toBeFalsy();
     });
