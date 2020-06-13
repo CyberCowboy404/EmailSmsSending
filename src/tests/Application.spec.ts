@@ -233,14 +233,14 @@ describe("Application class", () => {
       }, 1000);
     });
   });
-
-  describe('Sender tests. Creation of sms and letters', () => {
-    it('should create sms and letter ', () => {
+  // Also try to test and check with blacklist
+  describe('Sender tests. Create and Send sms/letters', () => {
+    it('should send sms/letter', () => {
       const app = new Application();
       const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
       const adminId = app.createAdmin(adminInfo).info.id;
       const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
-      const contentSms = 'I will not spam you email';
+      const contentSms = 'I will not spam you sms';
       const contentLetter = 'I will not spam you email';
       const contact1 = {
         name: 'George',
@@ -250,84 +250,13 @@ describe("Application class", () => {
 
       app.createContact({ accountId, adminId, contact: contact1 });
 
-      const sms = app.createSms({ adminId, accountId, content: contentSms }).info;
-      const letter = app.createLetter({ adminId, accountId, content: contentLetter }).info;
+      const resSms = app.sendSms({adminId, accountId, content: contentSms});
+      const resLetter = app.sendLetter({adminId, accountId, content: contentLetter});
 
-      expect(sms instanceof Sms).toBeTruthy();
-      expect(sms.contacts).toBeDefined();
-      expect(sms.content === contentSms).toBeTruthy();
-      expect(app.sms.length > 0).toBeTruthy();
+      console.log('resSms: ', resSms);
+      console.log('resLetter: ', resLetter);
 
-      expect(letter instanceof Letter).toBeTruthy();
-      expect(letter.contacts).toBeDefined();
-      expect(letter.content === contentLetter).toBeTruthy();
-      expect(app.letters.length > 0).toBeTruthy();
     });
-
-    it('should not create sms and letter if no contacts', () => {
-      const app = new Application();
-      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
-      const adminId = app.createAdmin(adminInfo).info.id;
-      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
-      const contentSms = 'I will not spam you email';
-      const contentLetter = 'I will not spam you email';
-
-      const sms = app.createSms({ adminId, accountId, content: contentSms }).info;
-      const letter = app.createLetter({ adminId, accountId, content: contentLetter }).info;
-
-      expect(sms instanceof Sms).toBeFalsy();
-      expect(sms.contacts).toBeUndefined();
-      expect(sms.content === contentSms).toBeFalsy();
-      expect(app.sms.length > 0).toBeFalsy();
-
-      expect(letter instanceof Letter).toBeFalsy();
-      expect(letter.contacts).toBeUndefined();
-      expect(letter.content === contentLetter).toBeFalsy();
-      expect(app.letters.length > 0).toBeFalsy();
-    });
-
-    it('should not create letter and sms', () => {
-      const app = new Application();
-      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
-      const adminId = app.createAdmin(adminInfo).info.id;
-      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
-      const contentSms = 'I will not spam you email';
-      const contentLetter = 'I will not spam you email';
-      const contact1 = {
-        name: 'George',
-        phoneNumber: '+123456789',
-        email: 'order@gmail.com'
-      };
-
-      app.createContact({ accountId, adminId, contact: contact1 });
-
-      let sms = app.createSms({ adminId, accountId, content: '' }).info;
-      let letter = app.createLetter({ adminId, accountId, content: '' }).info;
-
-      expect(sms instanceof Sms).toBeFalsy();
-      expect(sms.contacts).not.toBeDefined();
-      expect(sms.content === contentLetter).toBeFalsy();
-      expect(app.sms.length > 0).toBeFalsy();
-
-      expect(letter instanceof Letter).toBeFalsy();
-      expect(letter.contacts).not.toBeDefined();
-      expect(letter.content === contentSms).toBeFalsy();
-      expect(app.letters.length > 0).toBeFalsy();
-
-      let sms = app.createSms({ adminId, accountId: '123', content: contentSms }).info;
-      let letter = app.createLetter({ adminId, accountId: '281', content: contentLetter }).info;
-
-      expect(sms instanceof Sms).toBeFalsy();
-      expect(sms.contacts).not.toBeDefined();
-      expect(sms.content === contentLetter).toBeFalsy();
-      expect(app.sms.length > 0).toBeFalsy();
-
-      expect(letter instanceof Letter).toBeFalsy();
-      expect(letter.contacts).not.toBeDefined();
-      expect(letter.content === contentSms).toBeFalsy();
-      expect(app.letters.length > 0).toBeFalsy();
-    });
-
   });
 
 });

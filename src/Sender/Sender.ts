@@ -2,7 +2,7 @@ import { ContactInterface, UnsubscribeSource } from '../interfaces/Contact.inter
 import { MessageInterface } from '../interfaces/Messages.iterface';
 import tools from '../helpers/tools';
 import messages from '../helpers/messages';
-import { cloneDeep } from 'lodash';
+import { isEmpty } from 'lodash';
 import { config } from '../config/config';
 import { encrypt } from '../helpers/encryption';
 import { type } from 'os';
@@ -50,9 +50,12 @@ export class Sender {
   }
 
   send(): MessageInterface {
+    if (isEmpty(this.contacts)) {
+      this.status = 'FAILED';
+      return tools.statusMessage(false, messages.sender.contactsNotExists);
+    }
     // this.contacts
-    const contacts = cloneDeep(this.contacts);
-    const sent = contacts.map(contact => {
+    const sent = this.contacts.map(contact => {
       //make string like key:value:key:value in order to easely convert it to object
       let unsubscribeSource = this.type === 'sms' ? 'SMS_LINK' : 'EMAIL_LINK';
       const stringToEncrypt: string = `{
@@ -77,7 +80,5 @@ export class Sender {
     this.status = 'DELIVERED';
 
     return tools.statusMessage(true, messages.sender.sent, sent);
-
-    // return tools.statusMessage(false, messages.sender.notSent);
   }
 }

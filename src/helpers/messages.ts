@@ -46,6 +46,8 @@ const messages = {
     },
     sent: 'Data has been sent',
     notSent: 'Data not sent',
+    smsNotExists: 'Sms not exists',
+    LetterNotExists: 'Letter not exists',
     contactsNotExists: 'You should add at least 1 contact before creation'
   },
   unsubscribe: {

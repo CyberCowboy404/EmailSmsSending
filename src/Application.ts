@@ -8,7 +8,7 @@ import { EncryptedDataStructure } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { flatten, isEmpty } from 'lodash';
+import { flatten } from 'lodash';
 import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
@@ -28,6 +28,7 @@ import {
   isAccountExists,
   isAdminOwnerOfAccount,
   isContactsProvided,
+  isContactsExists,
 } from './validation/Rules';
 import contact from './data/contacts';
 
@@ -119,7 +120,8 @@ export class Application {
   }
   // todo: phone number validation
   // todo: add email validation when finish with phone number
-  // todo: validation both of phone number and email 
+  // todo: validation both of phone number and email
+  // todo: add ability to skip contact if it in Blacklist instead if throwing error 
   createContact({ accountId, adminId, contact }: CreateContactInterface) {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
@@ -152,44 +154,35 @@ export class Application {
     }
   }
 
-  createSms({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
-    const preparedContacts = this.contentCreation({ adminId, accountId, content });
-    if (!preparedContacts.ok) {
-      return this.failedValidation(preparedContacts.info);
+  sendSms({ adminId, accountId, content }: CreateSenderObjectInterface) {
+    const beforeSend = this.senderCheck({ adminId, accountId, content });
+
+    if (!beforeSend.ok) {
+      return this.failedValidation(beforeSend.info);
     }
-    const contacts = preparedContacts.info;
+    const contacts = beforeSend.info;
     const sms = new Sms({ type: 'sms', contacts, content });
     this.sms.push(sms);
-    return tools.statusMessage(true, messages.sender.created('Sms'), sms);
+
+    return sms.send();
   }
 
-  sendSms(smsId: string) {
-    const sms = this.sms.find(elem => elem.id == smsId);
-    if (sms) {
-      return sms.send();
-    }
-  }
   // todo:
   // check if id exist and show message like: you should create before
-  createLetter({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
-    const preparedContacts = this.contentCreation({ adminId, accountId, content });
-    if (!preparedContacts.ok) {
-      return this.failedValidation(preparedContacts.info);
+  sendLetter({ adminId, accountId, content }: CreateSenderObjectInterface) {
+    const beforeCreate = this.senderCheck({ adminId, accountId, content });
+
+    if (!beforeCreate.ok) {
+      return this.failedValidation(beforeCreate.info);
     }
-    const contacts = preparedContacts.info;
+    const contacts = beforeCreate.info;
     const letter = new Letter({ type: 'letter', contacts, content });
+
     this.letters.push(letter);
-    return tools.statusMessage(true, messages.sender.created('Letter'), letter);
+
+    return letter.send();
   }
 
-  // todo:
-  // check if id exist and show message like: you should create before
-  sendLetter(letterId: string) {
-    const letter = this.letters.find(elem => elem.id == letterId);
-    if (letter) {
-      return letter.send();
-    }
-  }
   unsubsribeLink(link: string) {
     // todo:
     // check link 
@@ -238,7 +231,7 @@ export class Application {
     const account = this.getAccountByAdmin({ adminId, accountId });
     return account?.resubscribeContact({ email, phoneNumber });
   }
-  private contentCreation({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
+  private senderCheck({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     // function isParamsEmpty will handle if content will be empty
     // todo: need additional validation if content structure will become more complex
     const validation: MessageInterface = pipe(
@@ -246,6 +239,7 @@ export class Application {
       isAdminExists.bind(this.admins),
       isAccountExists.bind(this.accounts),
       isAdminOwnerOfAccount.bind(this.getAdminById(adminId)),
+      isContactsExists.bind(this.getContacts({ adminId, accountId })),
       errorHandler
     )({
       validateData: {
@@ -261,14 +255,8 @@ export class Application {
     if (!validation.ok) {
       return this.failedValidation(validation.info);
     }
-    const contacts = this.getContacts({ adminId, accountId });
-    
-    if (isEmpty(contacts)) {
-      return tools.statusMessage(false, messages.sender.contactsNotExists);
-    }
 
-    return tools.statusMessage(true, '', contacts);
-
+    return tools.statusMessage(true, '', this.getContacts({ adminId, accountId }));
   }
   // todo:
   // - also check all contacts with same email or phone number and disable they too.

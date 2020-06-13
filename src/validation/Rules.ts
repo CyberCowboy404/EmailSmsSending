@@ -8,6 +8,8 @@ import { BlackList } from '../interfaces/Application.interface';
 import { Account } from '../Account';
 import { ContactInterface } from '../interfaces/Contact.interface';
 import { pipe } from 'lodash/fp';
+import { Sms } from '../Sender/Sms';
+import { Letter } from '../Sender/Letter';
 export type ValidationData = {
   validateData: {
     params: any
@@ -60,6 +62,7 @@ export function isAdminOwnerOfAccount(this: Admin, { validateData, errorArray }:
   const admin: Admin = this;
   const account = admin?.getAccount(validateData.params.accountId);
   const { accountId, adminId } = validateData.params;
+
   if (!isEmpty(admin) && !isEmpty(account)) {
     return nextData({ validateData, errorArray });
   } else {
@@ -73,6 +76,36 @@ export function isContactsProvided(this: ContactInterface, { validateData, error
     return nextData({ validateData, errorArray });
   } else {
     return errorMessage(messages.contact.noContactsProvided, { validateData, errorArray });
+  }
+}
+
+export function isContactsExists(this: ContactInterface[], { validateData, errorArray }: ValidationData): ValidationData {
+  const contact: ContactInterface[] = this;
+  if (!isEmpty(contact)) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.sender.contactsNotExists, { validateData, errorArray });
+  }
+}
+export function isSmsCreated(this: Sms[], { validateData, errorArray }: ValidationData): ValidationData {
+  const sms: Sms[] = this;
+  const smsExists = tools.findById(sms, validateData.params.smsId);
+
+  if (!isEmpty(sms) && !isEmpty(smsExists)) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.sender.smsNotExists, { validateData, errorArray });
+  }
+}
+
+export function isLetterCreated(this: Letter[], { validateData, errorArray }: ValidationData): ValidationData {
+  const letters: Letter[] = this;
+  const letterExists = tools.findById(letters, validateData.params.letterId);
+
+  if (!isEmpty(letters) && !isEmpty(letterExists)) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.sender.smsNotExists, { validateData, errorArray });
   }
 }
 
