@@ -14,6 +14,12 @@ export interface ContactInterface {
 export interface CreateContactInterface {
   adminId: string;
   accountId: string;
-  contact: ContactInterface;
+  contact: ContactData;
+}
+export type ContactData = {
+  email: string;
+  name: string;
+  phoneNumber: string;
+  accountId: string;
 }
 export type UnsubscribeSource = 'EMAIL_LINK' | 'CRM' | 'SMS_LINK';

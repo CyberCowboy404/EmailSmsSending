@@ -9,7 +9,7 @@ import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import { flatten, isEmpty } from 'lodash';
-import { pipe, pick, map, partialRight } from 'lodash/fp';
+import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
   BlackList,
@@ -30,8 +30,6 @@ import {
   isContactsProvided,
   isContactsExists,
 } from './validation/Rules';
-import contact from './data/contacts';
-
 
 export class Application {
   private admins: Admin[] = [];
@@ -48,10 +46,8 @@ export class Application {
       errorHandler
     )({
       validateData: {
-        params: {
-          name,
-          email
-        },
+        name,
+        email
       },
       errorArray: []
     });
@@ -73,6 +69,7 @@ export class Application {
     // - if admin not found return null
     return tools.findByEmail(this.admins, email);
   }
+
   // todo: add Admin | null
   getAdminById(id: string): Admin {
     // todo:
@@ -89,10 +86,8 @@ export class Application {
       errorHandler
     )({
       validateData: {
-        params: {
-          name,
-          adminId
-        }
+        name,
+        adminId
       },
       errorArray: []
     });
@@ -122,6 +117,7 @@ export class Application {
   // todo: add email validation when finish with phone number
   // todo: validation both of phone number and email
   // todo: add ability to skip contact if it in Blacklist instead if throwing error 
+
   createContact({ accountId, adminId, contact }: CreateContactInterface) {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
@@ -133,15 +129,14 @@ export class Application {
       errorHandler
     )({
       validateData: {
-        params: {
-          accountId,
-          adminId,
-          contact
-        }
+        accountId,
+        adminId,
+        contact
       },
       errorArray: []
     });
 
+    
     if (!validation.ok) {
       return this.failedValidation(validation.info);
     }
@@ -249,11 +244,9 @@ export class Application {
       errorHandler
     )({
       validateData: {
-        params: {
-          accountId,
-          adminId,
-          content
-        }
+        accountId,
+        adminId,
+        content
       },
       errorArray: []
     });

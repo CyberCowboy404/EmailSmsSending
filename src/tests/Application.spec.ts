@@ -187,9 +187,11 @@ describe("Application class", () => {
       const phoneNumber = '+71234562'
 
       app.blacklist.push({ email });
+      console.log('app.blacklist: ', app.blacklist);
       let contact1 = { email };
       //email in black
       let status = app.createContact({ accountId, adminId, contact: contact1 });
+      // console.log('status: ', status);
       expect(status.ok).toBeFalsy();
       // phone in black
       app.blacklist = [];

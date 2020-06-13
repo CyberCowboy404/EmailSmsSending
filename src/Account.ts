@@ -1,5 +1,5 @@
 import { AccountInterface } from './interfaces/Account.interface';
-import { ContactInterface, UnsubscribeSource } from './interfaces/Contact.interface';
+import { ContactInterface, UnsubscribeSource, ContactData } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
 import tools from './helpers/tools';
 import messages from './helpers/messages';
@@ -28,29 +28,34 @@ export class Account implements AccountInterface {
   }
 
   // do additional validation before inserting
-  createContact(contact: ContactInterface): MessageInterface {
+  createContact(contactInfo: ContactData): MessageInterface {
     // todo
     // provide validation
     let isContactExists;
 
-    if (contact.phoneNumber) {
-      isContactExists = tools.findByPhone(this.contacts, contact.phoneNumber)
-    } else if (contact.email) {
-      isContactExists = tools.findByEmail(this.contacts, contact.email)
+    if (contactInfo.phoneNumber) {
+      isContactExists = tools.findByPhone(this.contacts, contactInfo.phoneNumber)
+    } else if (contactInfo.email) {
+      isContactExists = tools.findByEmail(this.contacts, contactInfo.email)
     }
 
     if (isContactExists) {
       const { id, email, phoneNumber } = isContactExists;
-      contact.updateTime = tools.generateUnixTimeStamp();
-      Object.assign(isContactExists, contact);
+      Object.assign(isContactExists, contactInfo, { updateTime: tools.generateUnixTimeStamp() });
       return tools.statusMessage(true, messages.contact.updated({ id, email, phoneNumber }), isContactExists);
     } else {
-      contact.id = tools.generateUniqId();
-      contact.createTime = tools.generateUnixTimeStamp();
-      contact.updateTime = tools.generateUnixTimeStamp();
-      contact.token = generateToken();
-      contact.emailEnabled = true;
-      contact.phoneNumberEnabled = true;
+      const contact: ContactInterface = {
+        id: tools.generateUniqId(),
+        accountId: contactInfo.accountId,
+        name: contactInfo.name,
+        createTime: tools.generateUnixTimeStamp(),
+        updateTime: tools.generateUnixTimeStamp(),
+        token: generateToken(),
+        emailEnabled: true,
+        phoneNumberEnabled: true,
+        email: contactInfo.email,
+        phoneNumber: contactInfo.phoneNumber
+      }
       this.contacts.push(contact);
       return tools.statusMessage(true, messages.contact.created, contact);
     }

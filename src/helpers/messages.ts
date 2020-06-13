@@ -22,7 +22,7 @@ const messages = {
     adminExists: 'Admin with this email already exist',
     adminNotExist(id: string) { return `Admin with id: ${id} not exist` },
     accountLinked: 'Account succesfully linked to admin',
-    accessError({ adminId, accountId }: AccessArguments) {
+    accessError({ adminId = '', accountId = '' }: AccessArguments) {
       return `Admin id: ${adminId} is not owner of account id: ${accountId}`
     }
   },
