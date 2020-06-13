@@ -271,6 +271,13 @@ describe("Application class", () => {
       const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
       const contentSms = 'I will not spam you email';
       const contentLetter = 'I will not spam you email';
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+        email: 'order@gmail.com'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact1 });
 
       let sms = app.createSms({ adminId, accountId, content: '' }).info;
       let letter = app.createLetter({ adminId, accountId, content: '' }).info;

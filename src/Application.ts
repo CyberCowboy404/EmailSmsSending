@@ -173,7 +173,6 @@ export class Application {
   // check if id exist and show message like: you should create before
   createLetter({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     const preparedContacts = this.contentCreation({ adminId, accountId, content });
-    console.log('preparedContacts: ', preparedContacts);
     if (!preparedContacts.ok) {
       return this.failedValidation(preparedContacts.info);
     }
