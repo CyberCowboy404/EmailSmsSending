@@ -4,6 +4,7 @@ import { Application } from '../Application';
 import { Admin } from '../Admin';
 import messages from '../helpers/messages'
 import { cloneDeep } from 'lodash'
+import { decrypt } from '../helpers/encryption';
 
 const contact1 = {
   name: 'George',
@@ -206,7 +207,7 @@ describe("Application class", () => {
       const phoneNumber = '+71234562'
 
       app.blacklist.push({ email });
-      console.log('app.blacklist: ', app.blacklist);
+      
       let contact1 = { email };
       //email in black
       let status = app.createContact({ accountId, adminId, contact: contact1 });
@@ -327,16 +328,40 @@ describe("Application class", () => {
       const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
       const contentSms = 'I will not spam you sms';
 
-      app.createContact({ accountId, adminId, contact: contact1 });
-      app.createContact({ accountId, adminId, contact: contact2 });
+      const contact1Token = app.createContact({ accountId, adminId, contact: contact1 });
+      const contact2Token = app.createContact({ accountId, adminId, contact: contact3 });
 
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
+      const resLet = app.send('letter', { adminId, accountId, content: contentSms });
+
 
       expect(resSms.info.length === 2).toBeTruthy();
-      const message1 = resSms.info[0];
-      const message2 = resSms.info[1];
+      expect(resLet.info.length === 1).toBeTruthy();
 
-      console.log('resSms: ', resSms);
+      const message1 = resSms.info[0];
+      const token1 = message1.message.replace(/.*token=/, '');
+      const decrypt1 = decrypt(token1);
+      expect(typeof decrypt1 === 'string').toBeTruthy();
+      const jsonObj1 = JSON.parse(decrypt1);
+      
+      expect(typeof jsonObj1 === 'object').toBeTruthy();
+      expect(jsonObj1.accountId === accountId).toBeTruthy();
+      expect(jsonObj1.unsubscribeSource === 'SMS_LINK').toBeTruthy();
+      expect(jsonObj1.phoneNumber === contact1.phoneNumber).toBeTruthy();
+      expect(jsonObj1.token === contact1Token.info.token).toBeTruthy();
+
+      const message2 = resLet.info[0];
+      const token2 = message2.message.replace(/.*token=/, '');
+      const decrypt2 = decrypt(token2);
+      expect(typeof decrypt2 === 'string').toBeTruthy();
+      const jsonObj2 = JSON.parse(decrypt2);
+      
+      expect(typeof jsonObj2 === 'object').toBeTruthy();
+      expect(jsonObj2.accountId === accountId).toBeTruthy();
+      expect(jsonObj2.unsubscribeSource === 'EMAIL_LINK').toBeTruthy();
+      expect(jsonObj2.email === contact3.email).toBeTruthy();
+      expect(jsonObj2.token === contact2Token.info.token).toBeTruthy();
+
     });
   });
 });

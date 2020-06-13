@@ -100,28 +100,6 @@ export function isContactsExists(this: ContactInterface[], { validateData, error
   }
 }
 
-export function isSmsCreated(this: Sms[], { validateData, errorArray }: ValidationData): ValidationData {
-  const sms: Sms[] = this;
-  const smsExists = tools.findById(sms, validateData.smsId || '');
-
-  if (!isEmpty(sms) && !isEmpty(smsExists)) {
-    return nextData({ validateData, errorArray });
-  } else {
-    return errorMessage(messages.sender.smsNotExists, { validateData, errorArray });
-  }
-}
-
-export function isLetterCreated(this: Letter[], { validateData, errorArray }: ValidationData): ValidationData {
-  const letters: Letter[] = this;
-  const letterExists = tools.findById(letters, validateData.letterId || '');
-
-  if (!isEmpty(letters) && !isEmpty(letterExists)) {
-    return nextData({ validateData, errorArray });
-  } else {
-    return errorMessage(messages.sender.smsNotExists, { validateData, errorArray });
-  }
-}
-
 export function isContactInBlackList(this: BlackList[], { validateData, errorArray }: ValidationData): ValidationData {
   const blacklist = this;
   const contactEmail = tools.findByEmail(blacklist, validateData.contact?.email || '');
