@@ -141,11 +141,11 @@ Depending on different `UNSUBSCRIBE_STATUS` app will handle type of unsubscripti
 
 ```js
 app.unsubsribeCRM({adminId, data: {
-  email: 'user@email.com';
-  phoneNumber: '+712345678';
-  accountId;
-  type: 'sms' || 'letter';
-  unsubscribeSource: 'EMAIL_LINK' | 'CRM' | 'SMS_LINK';
+  email: 'user@email.com',
+  phoneNumber: '+712345678',
+  accountId,
+  type: 'sms' || 'letter',
+  unsubscribeSource: 'EMAIL_LINK' | 'CRM' | 'SMS_LINK'
 }});
 ```
 ### Resubscribe user
@@ -153,4 +153,4 @@ app.unsubsribeCRM({adminId, data: {
 app.resubscribe({ accountId, adminId, email, phoneNumber });
 ```
 
-You should pass at least contact detail, phoneNumber or email
+You should pass at least one contact detail, phoneNumber or email
