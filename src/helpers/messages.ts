@@ -18,6 +18,7 @@ const messages = {
       return `Admin: ${name} created with email: ${email}`;
     },
     accountExists: 'Admin already has this account',
+    adminExists: 'Admin with this email already exist',
     accountLinked: 'Account succesfully linked to admin'
   },
   account: {

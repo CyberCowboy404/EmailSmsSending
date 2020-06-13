@@ -15,13 +15,7 @@ export function isParamsEmpty({ validateData, errorArray = [] }: ValidationData)
       errorArray,
     }
   } else {
-    return {
-      validateData,
-      errorArray: [
-        ...errorArray,
-        messages.validation.emptyParams
-      ]
-    }
+    return errorMessage(messages.validation.emptyParams, { validateData, errorArray });
   }
 }
 export function isValidEmail({ validateData, errorArray = [] }: ValidationData): ValidationData {
@@ -33,19 +27,24 @@ export function isValidEmail({ validateData, errorArray = [] }: ValidationData):
       errorArray,
     }
   } else {
-    return {
-      validateData,
-      errorArray: [
-        ...errorArray,
-        messages.validation.notValidEmail
-      ]
-    }
+    return errorMessage(messages.validation.notValidEmail, { validateData, errorArray });
   }
 }
-export function errorHandler({ validateData, errorArray = [] }: ValidationData): MessageInterface {
+export function errorHandler({ errorArray = [] }: ValidationData): MessageInterface {
   if (errorArray.length) {
     return tools.statusMessage(false, messages.validation.failed, errorArray);
   } else {
     return tools.statusMessage(true, messages.validation.passed);
+  }
+}
+
+export function errorMessage(message: string, { validateData, errorArray = [] }: ValidationData) {
+  
+  return {
+    validateData,
+    'errorArray': [
+      ...errorArray,
+      message
+    ]
   }
 }

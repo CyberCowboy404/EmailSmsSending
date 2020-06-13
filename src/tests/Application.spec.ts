@@ -39,6 +39,13 @@ describe("Application class", () => {
       expect(statusMessage.ok).toBeFalsy();
       expect(app.admins.length === 0).toBeTruthy();
     });
+    it("should not create admin if another admin already has such email", () => {
+      const app = new Application();
+      const admin1Status = app.createAdmin({ name: 'John', email: 'john@gmail.com' });
+      expect(admin1Status.ok).toBeTruthy();
+      const admin2Status = app.createAdmin({ name: 'Valera', email: 'john@gmail.com' });
+      expect(admin2Status.ok).toBeFalsy();
+    });
   });
 
 });

@@ -18,7 +18,13 @@ import {
   ResubscribeData,
   AccessArguments
 } from './interfaces/Application.interface'
-import { isParamsEmpty, errorHandler, isValidEmail } from './validation/Rules';
+import {
+  isParamsEmpty,
+  errorHandler,
+  isValidEmail,
+  ValidationData,
+  errorMessage
+} from './validation/Rules';
 
 
 export class Application {
@@ -36,6 +42,7 @@ export class Application {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
       isValidEmail,
+      this.isUniqAdminEmail.bind(this),
       errorHandler
     )({ validateData: { name, email }, errorArray: [] });
 
@@ -211,6 +218,17 @@ export class Application {
   private removeUnsubscribed(elem: ContactInterface): any {
     if (elem.emailEnabled && elem.phoneNumberEnabled) {
       return elem;
+    }
+  }
+  private isUniqAdminEmail({ validateData, errorArray }: ValidationData): ValidationData {
+    const admin = tools.findByEmail(this.admins, validateData.email);
+    if (!admin && !admin?.length) {
+      return {
+        validateData,
+        errorArray,
+      }
+    } else {
+      return errorMessage(messages.admin.adminExists, { validateData, errorArray });
     }
   }
 }
