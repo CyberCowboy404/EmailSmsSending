@@ -8,7 +8,7 @@ import { EncryptedDataStructure } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { every, isEmpty, flatten } from 'lodash';
+import { flatten } from 'lodash';
 import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
@@ -23,8 +23,11 @@ import {
   errorHandler,
   isValidEmail,
   isUniqAdminEmail,
-  isAdminIdRight,
-  isAccountAlreadyLinked,
+  isAdminExists,
+  isContactInBlackList,
+  isAccountExists,
+  isAdminOwnerOfAccount,
+  isContactsProvided,
 } from './validation/Rules';
 
 
@@ -34,10 +37,7 @@ export class Application {
   private accounts: Account[] = [];
   private sms: Sms[] = [];
   private letters: Letter[] = [];
-  // Set stores only uniq values.
-  // We will use it to store all phones and emails
   private blacklist: BlackList[] = [];
-  // if we create several admins in parallel, we do not have time to validate the list of admins in time
   createAdmin({ name, email }: AdminConstructor): MessageInterface {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
@@ -47,14 +47,14 @@ export class Application {
     )({
       validateData: {
         params: {
-          name, email
+          name,
+          email
         },
       },
       errorArray: []
     });
 
     if (!validation.ok) {
-      // console.log(validation.info);
       return this.failedValidation(validation.info);
     }
 
@@ -81,10 +81,9 @@ export class Application {
 
   // Create account and ref it to admin
   createAccount({ adminId, name }: AccountInfo): MessageInterface {
-    // todo:
     const validation: MessageInterface = pipe(
       isParamsEmpty,
-      isAdminIdRight.bind(this.admins),
+      isAdminExists.bind(this.admins),
       errorHandler
     )({
       validateData: {
@@ -101,8 +100,6 @@ export class Application {
     }
     const account = new Account({ adminId, name });
     const admin = this.getAdminById(adminId);
-    // We can push it to admin but inside that method we shoudl check if account exists and etc...
-    // if we succesfull linked account than we should push it to the app
     admin.linkAccount(account);
     this.accounts.push(account);
     return tools.statusMessage(true, messages.account.created, { id: account.id });
@@ -121,20 +118,33 @@ export class Application {
   }
 
   createContact({ accountId, adminId, contact }: CreateContactInterface) {
-    //todo:
-    // - check account id amoung all bound accounts if account exists
-    // - check if contacts are empty
-    // - before contact will be created check if we have such contact and he can accept messages
-    // phoneNumberEnabled === true || emailEnabled === true, both must be true else we don't allow to add such contact
-    const contacts = this.accounts.map(account => account.getContacts);
+    const validation: MessageInterface = pipe(
+      isParamsEmpty,
+      isAdminExists.bind(this.admins),
+      isAccountExists.bind(this.accounts),
+      isAdminOwnerOfAccount.bind(this.getAdminById(adminId)),
+      isContactsProvided.bind(contact),
+      isContactInBlackList.bind(this.blacklist),
+      errorHandler
+    )({
+      validateData: {
+        params: {
+          accountId,
+          adminId,
+          contact
+        }
+      },
+      errorArray: []
+    });
 
-    if (!every(contacts, isEmpty)) {
-      // check contacts if they available to receive messages
+    if (!validation.ok) {
+      return this.failedValidation(validation.info);
     }
-    // if admin is owner of such account
+    
     const account = this.getAccountByAdmin({ adminId, accountId });
-    // Before create I should check if he agree to get messages
+    
     if (account) {
+      contact.accountId = accountId;
       return account.createContact(contact);
     }
   }

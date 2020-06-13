@@ -3,7 +3,7 @@ import { ContactInterface, UnsubscribeSource } from './interfaces/Contact.interf
 import { MessageInterface } from './interfaces/Messages.iterface';
 import tools from './helpers/tools';
 import messages from './helpers/messages';
-import { cloneDeep, isEmpty } from 'lodash';
+import { isEmpty, clone } from 'lodash';
 import { generateToken } from './helpers/encryption';
 import { UserInformation } from './interfaces/Application.interface';
 
@@ -28,14 +28,34 @@ export class Account implements AccountInterface {
   }
 
   // do additional validation before inserting
-  // if contact already exists update it with update time
-  // Return message about status of creating
   createContact(contact: ContactInterface): MessageInterface {
     // todo
-    const formatContact = cloneDeep(contact);
-    formatContact.token = generateToken();
-    this.contacts.push(formatContact);
-    return tools.statusMessage(true, messages.contact.created, contact);
+    // provide validation
+    let isContactExists;
+
+    if (contact.phoneNumber) {
+      isContactExists = tools.findByPhone(this.contacts, contact.phoneNumber)
+    } else if (contact.email) {
+      isContactExists = tools.findByEmail(this.contacts, contact.email)
+    }
+
+    if (isContactExists) {
+      const { id, email, phoneNumber } = isContactExists;
+      contact.updateTime = tools.generateUnixTimeStamp();
+      console.log('isContactExists: ', isContactExists);
+      console.log('contact: ', contact);
+      Object.assign(isContactExists, contact);
+      return tools.statusMessage(true, messages.contact.updated({ id, email, phoneNumber }), isContactExists);
+    } else {
+      contact.id = tools.generateUniqId();
+      contact.createTime = tools.generateUnixTimeStamp();
+      contact.updateTime = tools.generateUnixTimeStamp();
+      contact.token = generateToken();
+      contact.emailEnabled = true;
+      contact.phoneNumberEnabled = true;
+      this.contacts.push(contact);
+      return tools.statusMessage(true, messages.contact.created, contact);
+    }
   }
 
   get getContacts() {

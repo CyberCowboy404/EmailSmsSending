@@ -4,12 +4,15 @@ import tools from '../helpers/tools';
 import { MessageInterface } from '../interfaces/Messages.iterface';
 import { AdminInterface } from '../interfaces/Admin.interface';
 import { Admin } from '../Admin';
-
+import { BlackList } from '../interfaces/Application.interface';
+import { Account } from '../Account';
+import { ContactInterface } from '../interfaces/Contact.interface';
+import { pipe } from 'lodash/fp';
 export type ValidationData = {
   validateData: {
     params: any
   };
-  errorArray: string[];
+  errorArray?: string[];
   admins?: AdminInterface[]
 }
 
@@ -42,10 +45,10 @@ export function isUniqAdminEmail(this: Admin[], { validateData, errorArray }: Va
   }
 }
 
-export function isAdminIdRight(this: Admin[], { validateData, errorArray }: ValidationData): ValidationData {
+export function isAdminExists(this: Admin[], { validateData, errorArray }: ValidationData): ValidationData {
   const admins: Admin[] = this;
   const admin = tools.findById(admins, validateData.params.adminId);
-  
+
   if (!isEmpty(admin)) {
     return nextData({ validateData, errorArray });
   } else {
@@ -53,13 +56,46 @@ export function isAdminIdRight(this: Admin[], { validateData, errorArray }: Vali
   }
 }
 
-export function isAccountAlreadyLinked(this: Admin[], { validateData, errorArray }: ValidationData): ValidationData {
-  const admins: Admin[] = this;
-  const admin = tools.findById(admins, validateData.params.adminId);
-  if (admin && admin?.length) {
+export function isAdminOwnerOfAccount(this: Admin, { validateData, errorArray }: ValidationData): ValidationData {
+  const admin: Admin = this;
+  const account = admin?.getAccount(validateData.params.accountId);
+  const { accountId, adminId } = validateData.params;
+  if (!isEmpty(admin) && !isEmpty(account)) {
     return nextData({ validateData, errorArray });
   } else {
-    return errorMessage(messages.admin.adminExists, { validateData, errorArray });
+    return errorMessage(messages.admin.accessError({ accountId, adminId }), { validateData, errorArray });
+  }
+}
+
+export function isContactsProvided(this: ContactInterface, { validateData, errorArray }: ValidationData): ValidationData {
+  const contact: ContactInterface = this;
+  if (!isEmpty(contact) && (contact.email || contact.phoneNumber)) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.contact.noContactsProvided, { validateData, errorArray });
+  }
+}
+
+export function isContactInBlackList(this: BlackList[], { validateData, errorArray }: ValidationData): ValidationData {
+  const blacklist = this;
+  const contactEmail = tools.findByEmail(blacklist, validateData.params.email);
+  const contactPhone = tools.findByPhone(blacklist, validateData.params.phoneNumber);
+
+  if (isEmpty(blacklist) || (isEmpty(contactEmail) && isEmpty(contactPhone))) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.contact.blackList, { validateData, errorArray });
+  }
+}
+
+export function isAccountExists(this: Account[], { validateData, errorArray }: ValidationData): ValidationData {
+  const accounts = this;
+  const account = tools.findById(accounts, validateData.params.accountId);
+
+  if (!isEmpty(accounts) && !isEmpty(account)) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.account.accountNotExists, { validateData, errorArray });
   }
 }
 
@@ -70,9 +106,8 @@ export function errorHandler({ errorArray = [] }: ValidationData): MessageInterf
     return tools.statusMessage(true, messages.validation.passed);
   }
 }
-export function errorMessage(message: string, { validateData, errorArray = [], admins }: ValidationData) {
+export function errorMessage(message: string, { validateData, errorArray = [] }: ValidationData) {
   return {
-    admins,
     validateData,
     'errorArray': [
       ...errorArray,
@@ -80,9 +115,8 @@ export function errorMessage(message: string, { validateData, errorArray = [], a
     ]
   }
 }
-export function nextData({ validateData, errorArray = [], admins = [] }: ValidationData) {
+export function nextData({ validateData, errorArray = [] }: ValidationData) {
   return {
-    admins,
     validateData,
     errorArray,
   }

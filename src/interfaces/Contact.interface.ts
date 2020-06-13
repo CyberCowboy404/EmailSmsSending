@@ -2,8 +2,7 @@ export interface ContactInterface {
   id: string;
   name: string;
   email: string;
-  emailEnabled: boolean;
-  // Better number or string?
+  emailEnabled?: boolean;
   phoneNumber?: string;
   phoneNumberEnabled?: boolean;
   accountId: string;

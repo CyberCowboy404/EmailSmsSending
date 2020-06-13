@@ -4,6 +4,7 @@ import { Application } from '../Application';
 import { Admin } from '../Admin';
 import { Account } from '../Account'
 import messages from '../helpers/messages'
+import { cloneDeep } from 'lodash'
 
 describe("Application class", () => {
   it("should init Application class properly", () => {
@@ -28,27 +29,34 @@ describe("Application class", () => {
       expect(admin.name == name).toBeTruthy();
       expect(admin.email == email).toBeTruthy();
     });
+
     it("should not create admin because fail of validation", () => {
       const app = new Application();
+
       let statusMessage = app.createAdmin({ name: 'John', email: '' });
       expect(statusMessage.ok).toBeFalsy();
       expect(app.admins.length === 0).toBeTruthy();
+
       let statusMessage = app.createAdmin({ name: '', email: 'John' });
       expect(statusMessage.ok).toBeFalsy();
       expect(app.admins.length === 0).toBeTruthy();
+
       let statusMessage = app.createAdmin({ name: 'john', email: 'john' });
       expect(statusMessage.ok).toBeFalsy();
       expect(app.admins.length === 0).toBeTruthy();
+
       let statusMessage = app.createAdmin({ name: 'john', email: 'john@i' });
       expect(statusMessage.ok).toBeFalsy();
       expect(app.admins.length === 0).toBeTruthy();
     });
+
     it("should not create admin if another admin already has such email", () => {
       const app = new Application();
+
       const admin1Status = app.createAdmin({ name: 'John', email: 'john@gmail.com' });
       expect(admin1Status.ok).toBeTruthy();
+
       const admin2Status = app.createAdmin({ name: 'Valera', email: 'john@gmail.com' });
-      // console.log('app: admin: 3', app);
       expect(admin2Status.ok).toBeFalsy();
     });
   });
@@ -64,6 +72,7 @@ describe("Application class", () => {
       expect(app.accounts.length === 1).toBeTruthy();
       expect(accountStatus.ok).toBeTruthy();
     });
+
     it("should not create account if creating with not existed Admin", () => {
       const app = new Application();
       // Create admin
@@ -82,6 +91,143 @@ describe("Application class", () => {
       let accountStatus = app.createAccount({ adminId: '123', name: 'My Account' });
       expect(app.accounts.length === 0).toBeTruthy();
       expect(accountStatus.ok).toBeFalsy();
+    });
+  });
+
+  describe('Contact creations', () => {
+    it("should sucesfully create contact with email", () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contact1 = {
+        name: 'George',
+        email: 'gorge@gmail.com'
+      };
+      const status = app.createContact({ accountId, adminId, contact: contact1 });
+
+      expect(app.getAccount(accountId).contacts.length > 0).toBeTruthy();
+      expect(status.info.email === contact1.email).toBeTruthy();
+      expect(status.info.token).toBeDefined();
+    });
+
+    it("should sucesfully create contact with phoneNumber", () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+123456789'
+      };
+      const status = app.createContact({ accountId, adminId, contact: contact1 });
+
+      expect(app.getAccount(accountId).contacts.length > 0).toBeTruthy();
+      expect(status.info.phone === contact1.phone).toBeTruthy();
+      expect(status.info.token).toBeDefined();
+    });
+
+    it("should sucesfully create contact with both phone and email", () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+        email: 'george@gmail.com'
+      };
+      const status = app.createContact({ accountId, adminId, contact: contact1 });
+
+      expect(app.getAccount(accountId).contacts.length > 0).toBeTruthy();
+      expect(status.info.phone === contact1.phone).toBeTruthy();
+      expect(status.info.email === contact1.email).toBeTruthy();
+      expect(status.info.token).toBeDefined();
+    });
+
+    it("should not create contact because of validation", () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contact1 = {
+        name: 'George',
+        email: 'gorge@gmail.com'
+      };
+      // Bad account Id
+      let status = app.createContact({ accountId: '123', adminId, contact: contact1 });
+      expect(status.ok).toBeFalsy();
+      // Bad admin Id
+      let status = app.createContact({ accountId, adminId: '123', contact: contact1 });
+      expect(status.ok).toBeFalsy();
+      // bad email
+      const badEmail = {
+        name: 'George',
+        email: 'gorge@gmail.'
+      };
+      let status = app.createContact({ accountId, adminId: '123', contact: badEmail });
+      expect(status.ok).toBeFalsy();
+      // no contact details
+      const badEmail = {
+        name: 'George',
+      };
+      let status = app.createContact({ accountId, adminId, contact: badEmail });
+      expect(status.ok).toBeFalsy();
+    });
+
+    it("should not create contact if it is in blacklist", () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const email = 'gorge@gmail.com';
+      const phoneNumber = '+71234562'
+
+      app.blacklist.push({ email });
+      let contact1 = { email };
+      //email in black
+      let status = app.createContact({ accountId, adminId, contact: contact1 });
+      expect(status.ok).toBeFalsy();
+      // phone in black
+      app.blacklist = [];
+      app.blacklist.push({ phoneNumber });
+      let contact1 = { phoneNumber };
+
+      let status = app.createContact({ accountId, adminId, contact: contact1 });
+      expect(status.ok).toBeFalsy();
+
+    });
+
+    it("should update contact if it is already in contacts", (done) => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+        email: 'order@gmail.com'
+      };
+      const temp = app.createContact({ accountId, adminId, contact: contact1 });
+      const previousContact = cloneDeep(temp);
+      expect(app.getAccount(accountId).contacts[0].email === contact1.email).toBeTruthy();
+
+      const contact1_1 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+        email: 'george@gmail.com'
+      };
+      // js to fast. we need to wait some time in order to check if update time has been changed
+      setTimeout(() => {
+        const newContact = app.createContact({ accountId, adminId, contact: contact1_1 }).info;
+        const ac = app.getAccount(accountId);
+        expect(ac.contacts.length === 1).toBeTruthy();
+        expect(ac.contacts[0].email === contact1_1.email).toBeTruthy();
+        expect(newContact.email !== previousContact.email).toBeTruthy();
+        expect(newContact.updateTime !== previousContact.updateTime);
+        done();
+      }, 1000);
     });
   });
 

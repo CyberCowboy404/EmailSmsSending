@@ -1,5 +1,6 @@
 // import { UserInformation } from '../interfaces/Application.interface'
 import { AdminConstructor } from '../interfaces/Admin.interface';
+import { AccessArguments } from '../interfaces/Application.interface';
 const messages = {
   error: {
     name: 'You should specify a name',
@@ -20,14 +21,24 @@ const messages = {
     accountExists: 'Admin already has this account',
     adminExists: 'Admin with this email already exist',
     adminNotExist(id: string) { return `Admin with id: ${id} not exist` },
-    accountLinked: 'Account succesfully linked to admin'
+    accountLinked: 'Account succesfully linked to admin',
+    accessError({ adminId, accountId }: AccessArguments) {
+      return `Admin id: ${adminId} is not owner of account id: ${accountId}`
+    }
   },
   account: {
     // todo: create this like a function in order to log more detailed message
     created: 'Account created',
+    accountNotExists: 'Account not exists'
   },
   contact: {
-    created: 'Contact created'
+    created: 'Contact created',
+    blackList: 'Contact in blacklist',
+    noContactsProvided: 'No contacts provided. You should specify email or phone number to proceed',
+    notValid: 'Contact should have valid email or phone number',
+    updated({ id, email, phoneNumber }: any) {
+      return `Contact id:${id} has been updated with data email: ${email} phoneNumber: ${phoneNumber}`
+    }
   },
   sender: {
     created(type: string) {
