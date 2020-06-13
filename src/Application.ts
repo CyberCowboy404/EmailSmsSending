@@ -38,6 +38,7 @@ type BlackList = {
 
 export class Application {
   private admins: Admin[] = [];
+  // todo: try to store account using closures to get access only from this class and by admin related account
   private accounts: Account[] = [];
   private sms: Sms[] = [];
   private letters: Letter[] = [];
@@ -110,9 +111,8 @@ export class Application {
     if (!every(contacts, isEmpty)) {
       // check contacts if they available to receive messages
     }
-    const admin = this.getAdminById(adminId);
     // if admin is owner of such account
-    const account = admin.getAccount(accountId);
+    const account = this.getAccountByAdmin({ adminId, accountId });
     // Before create I should check if he agree to get messages
     if (account) {
       return account.createContact(contact);
@@ -153,10 +153,6 @@ export class Application {
       return letter.send();
     }
   }
-  // todo:
-  // - also check all contacts with same email or phone number and disable they too.
-  // I should pass not one account but all who has same email and phone
-  // Maybe better to create black list?
   unsubsribeLink(link: string) {
     // todo:
     // check link 
@@ -191,8 +187,7 @@ export class Application {
   }
   unsubscribeCRM({ adminId, data }: UnsubscribeCRMData): MessageInterface | undefined {
     // Validate all inputs
-    const admin = this.getAdminById(adminId);
-    const account = admin.getAccount(data.accountId);
+    const account = this.getAccountByAdmin({ adminId, accountId: data.accountId });
     let result;
     if (data.type === 'letter' && data.email) {
       result = account?.unsubscribeEmailCrm(data.email);
@@ -210,12 +205,16 @@ export class Application {
   private getContacts({ adminId, accountId }: AccessArguments) {
     // todo
     // parametr validation
-    const admin = this.getAdminById(adminId);
-    const account = admin.getAccount(accountId);
+    const account = this.getAccountByAdmin({ adminId, accountId });
     const contacts = account?.getContacts || [];
     const cleanContacts = contacts.map(this.removeUnsubscribed);
 
     return cleanContacts;
+  }
+  private getAccountByAdmin({ adminId, accountId }: AccessArguments): Account | undefined {
+    const admin = this.getAdminById(adminId);
+    const account = admin.getAccount(accountId);
+    return account;
   }
   private removeUnsubscribed(elem: ContactInterface): any {
     if (elem.emailEnabled && elem.phoneNumberEnabled) {
