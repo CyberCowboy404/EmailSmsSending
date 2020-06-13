@@ -1,6 +1,8 @@
+// Use this file in order to test how application working
+
+
 import { Application } from './Application';
 import data from './data/contacts';
-import { generateToken } from './helpers/encryption';
 
 const app = new Application();
 
