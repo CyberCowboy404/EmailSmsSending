@@ -233,6 +233,7 @@ describe("Application class", () => {
       }, 1000);
     });
   });
+
   // Also try to test and check with blacklist
   describe('Sender tests. Create and Send sms/letters', () => {
     it('should send sms/letter', () => {
@@ -250,11 +251,69 @@ describe("Application class", () => {
 
       app.createContact({ accountId, adminId, contact: contact1 });
 
-      const resSms = app.sendSms({adminId, accountId, content: contentSms});
-      const resLetter = app.sendLetter({adminId, accountId, content: contentLetter});
+      const resSms = app.send('sms', { adminId, accountId, content: contentSms });
+      expect(resSms.ok).toBeTruthy();
+      expect(app.sms[0].status === 'DELIVERED').toBeTruthy();
 
-      console.log('resSms: ', resSms);
-      console.log('resLetter: ', resLetter);
+      const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
+      expect(resLetter.ok).toBeTruthy();
+      expect(app.letters[0].status === 'DELIVERED').toBeTruthy();
+
+    });
+
+    it('should not send sms/letter to contacts in black list', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contentSms = 'I will not spam you sms';
+      const contentLetter = 'I will not spam you email';
+
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+1323456789',
+      };
+
+      const contact2 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+      };
+
+      const contact3 = {
+        name: 'George',
+        phoneNumber: '+2123456789',
+        email: 'order@gmail.com'
+      };
+
+      const contact4 = {
+        name: 'George',
+        phoneNumber: '+3123456789',
+        email: '4order@gmail.com'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact1 });
+      app.createContact({ accountId, adminId, contact: contact2 });
+      app.createContact({ accountId, adminId, contact: contact3 });
+      app.createContact({ accountId, adminId, contact: contact4 });
+
+      app.blacklist = [{
+        email: 'order@gmail.com',
+        unsubscribeSource: 'EMAIL_LINK'
+      },
+      {
+        phoneNumber: '+123456789',
+        unsubscribeSource: 'EMAIL_LINK'
+      }];
+
+      const resSms = app.send('sms', { adminId, accountId, content: contentSms });
+      // console.log('resSms: ', app.accounts);
+      expect(resSms.ok).toBeTruthy();
+      expect(app.sms[0].status === 'DELIVERED').toBeTruthy();
+
+      const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
+      // console.log('resLetter: ', resLetter);
+      expect(resLetter.ok).toBeTruthy();
+      expect(app.letters[0].status === 'DELIVERED').toBeTruthy();
 
     });
   });

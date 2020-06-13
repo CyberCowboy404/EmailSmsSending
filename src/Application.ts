@@ -8,8 +8,8 @@ import { EncryptedDataStructure } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { flatten } from 'lodash';
-import { pipe } from 'lodash/fp';
+import { flatten, isEmpty } from 'lodash';
+import { pipe, pick, map, partialRight } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
   BlackList,
@@ -154,34 +154,29 @@ export class Application {
     }
   }
 
-  sendSms({ adminId, accountId, content }: CreateSenderObjectInterface) {
+  send(type: string, { adminId, accountId, content }: CreateSenderObjectInterface) {
     const beforeSend = this.senderCheck({ adminId, accountId, content });
 
     if (!beforeSend.ok) {
       return this.failedValidation(beforeSend.info);
     }
-    const contacts = beforeSend.info;
-    const sms = new Sms({ type: 'sms', contacts, content });
-    
-    this.sms.push(sms);
 
-    return sms.send();
-  }
+    let contacts;
 
-  // todo:
-  // check if id exist and show message like: you should create before
-  sendLetter({ adminId, accountId, content }: CreateSenderObjectInterface) {
-    const beforeCreate = this.senderCheck({ adminId, accountId, content });
-
-    if (!beforeCreate.ok) {
-      return this.failedValidation(beforeCreate.info);
+    if (type === 'sms') {
+      const contactsWithPhones = contacts = beforeSend.info.filter((elem: ContactInterface) => !!elem.phoneNumber);
+      contacts = contactsWithPhones.filter((elem: any) => this.cleanFromBlack(elem, 'phoneNumber'));
+      const sms = new Sms({ type: 'sms', contacts, content });
+      this.sms.push(sms);
+      return sms.send();
+    } else if (type === 'letter') {
+      const contactsWithEmail = beforeSend.info.filter((elem: ContactInterface) => !!elem.email);
+      contacts = contactsWithEmail.filter((elem: any) => this.cleanFromBlack(elem, 'email'));
+      const letter = new Letter({ type: 'letter', contacts, content });
+      this.letters.push(letter);
+      return letter.send();
     }
-    const contacts = beforeCreate.info;
-    const letter = new Letter({ type: 'letter', contacts, content });
 
-    this.letters.push(letter);
-
-    return letter.send();
   }
 
   unsubsribeLink(link: string) {
@@ -216,6 +211,7 @@ export class Application {
     }
     return result;
   }
+
   unsubscribeCRM({ adminId, data }: UnsubscribeCRM): MessageInterface | undefined {
     // Validate all inputs
     const account = this.getAccountByAdmin({ adminId, accountId: data.accountId });
@@ -227,11 +223,20 @@ export class Application {
     }
     return result;
   }
+
   resubscribe({ accountId, adminId, email, phoneNumber }: ResubscribeData) {
     // todo: validate all parameters
     const account = this.getAccountByAdmin({ adminId, accountId });
     return account?.resubscribeContact({ email, phoneNumber });
   }
+
+  private cleanFromBlack(elem: any, key: string) {
+    if (elem[key]) {
+      const black = tools.findById(this.blacklist, elem.phoneNumber);
+      return isEmpty(black);
+    }
+  }
+
   private senderCheck({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
     // function isParamsEmpty will handle if content will be empty
     // todo: need additional validation if content structure will become more complex
@@ -259,28 +264,29 @@ export class Application {
 
     return tools.statusMessage(true, '', this.getContacts({ adminId, accountId }));
   }
-  // todo:
-  // - also check all contacts with same email or phone number and disable they too.
-  // - check if it sends if user has disabledphone or disabled email
+
   private getContacts({ adminId, accountId }: AccessArguments) {
     // todo
     // parametr validation
     const account = this.getAccountByAdmin({ adminId, accountId });
     const contacts = account?.getContacts || [];
-    const cleanContacts = contacts.map(this.removeUnsubscribed);
+    const cleanContacts = contacts.filter(this.removeUnsubscribed);
 
     return cleanContacts;
   }
+
   private getAccountByAdmin({ adminId, accountId }: AccessArguments): Account | undefined {
     const admin = this.getAdminById(adminId);
     const account = admin.getAccount(accountId);
     return account;
   }
+
   private removeUnsubscribed(elem: ContactInterface): any {
     if (elem.emailEnabled && elem.phoneNumberEnabled) {
       return elem;
     }
   }
+
   private failedValidation(info: string[]) {
     return tools.statusMessage(false, messages.validation.failed, info);
   }
