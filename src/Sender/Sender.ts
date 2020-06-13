@@ -48,14 +48,14 @@ export class Sender {
     this.createTime = ts;
     this.sentTime = 0;
   }
-  
+
   send(): MessageInterface {
     if (isEmpty(this.contacts)) {
       this.status = 'FAILED';
       return tools.statusMessage(false, messages.sender.contactsNotExists);
     }
     const notSent: ContactInterface[] = []
-    
+
     const sent = this.contacts.map(contact => {
       if (!contact.phoneNumberEnabled || !contact.emailEnabled) {
         notSent.push(contact);
@@ -84,6 +84,6 @@ export class Sender {
     this.updateTime = ts;
     this.status = 'DELIVERED';
 
-    return tools.statusMessage(true, messages.sender.sent, { sent, notSent });
+    return tools.statusMessage(true, messages.sender.sent, sent);
   }
 }

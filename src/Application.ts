@@ -136,7 +136,7 @@ export class Application {
       errorArray: []
     });
 
-    
+
     if (!validation.ok) {
       return this.failedValidation(validation.info);
     }
@@ -227,7 +227,9 @@ export class Application {
 
   private cleanFromBlack(elem: any, key: string) {
     if (elem[key]) {
-      const black = tools.findById(this.blacklist, elem.phoneNumber);
+      const black = key === 'sms'
+        ? tools.findByPhone(this.blacklist, elem.phoneNumber)
+        : tools.findByEmail(this.blacklist, elem.email);
       return isEmpty(black);
     }
   }

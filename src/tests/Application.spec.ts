@@ -2,11 +2,30 @@
 
 import { Application } from '../Application';
 import { Admin } from '../Admin';
-import { Account } from '../Account'
 import messages from '../helpers/messages'
 import { cloneDeep } from 'lodash'
-import { Sms } from '../Sender/Sms';
-import { Letter } from '../Sender/Letter';
+
+const contact1 = {
+  name: 'George',
+  phoneNumber: '+1323456789',
+};
+
+const contact2 = {
+  name: 'George',
+  phoneNumber: '+123456789',
+};
+
+const contact3 = {
+  name: 'George',
+  phoneNumber: '+2123456789',
+  email: 'order@gmail.com'
+};
+
+const contact4 = {
+  name: 'George',
+  phoneNumber: '+3123456789',
+  email: '4order@gmail.com'
+};
 
 describe("Application class", () => {
   it("should init Application class properly", () => {
@@ -263,6 +282,8 @@ describe("Application class", () => {
 
     });
 
+    // todo: test more cases, more data.
+    // create dynamic data generation function
     it('should not send sms/letter to contacts in black list', () => {
       const app = new Application();
       const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
@@ -270,28 +291,6 @@ describe("Application class", () => {
       const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
       const contentSms = 'I will not spam you sms';
       const contentLetter = 'I will not spam you email';
-
-      const contact1 = {
-        name: 'George',
-        phoneNumber: '+1323456789',
-      };
-
-      const contact2 = {
-        name: 'George',
-        phoneNumber: '+123456789',
-      };
-
-      const contact3 = {
-        name: 'George',
-        phoneNumber: '+2123456789',
-        email: 'order@gmail.com'
-      };
-
-      const contact4 = {
-        name: 'George',
-        phoneNumber: '+3123456789',
-        email: '4order@gmail.com'
-      };
 
       app.createContact({ accountId, adminId, contact: contact1 });
       app.createContact({ accountId, adminId, contact: contact2 });
@@ -304,20 +303,40 @@ describe("Application class", () => {
       },
       {
         phoneNumber: '+123456789',
-        unsubscribeSource: 'EMAIL_LINK'
+        unsubscribeSource: 'EMAIL_LINK',
+      },
+      {
+        phoneNumber: '+2123456789',
+        unsubscribeSource: 'EMAIL_LINK',
       }];
 
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
-      // console.log('resSms: ', app.accounts);
+
+      expect(resSms.info.length == 1).toBeTruthy();
       expect(resSms.ok).toBeTruthy();
-      expect(app.sms[0].status === 'DELIVERED').toBeTruthy();
 
       const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
-      // console.log('resLetter: ', resLetter);
+      expect(resLetter.info.length == 1).toBeTruthy();
       expect(resLetter.ok).toBeTruthy();
-      expect(app.letters[0].status === 'DELIVERED').toBeTruthy();
+    });
 
+    it('should generate encrypted messages and properly decrypt with right data', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contentSms = 'I will not spam you sms';
+
+      app.createContact({ accountId, adminId, contact: contact1 });
+      app.createContact({ accountId, adminId, contact: contact2 });
+
+      const resSms = app.send('sms', { adminId, accountId, content: contentSms });
+
+      expect(resSms.info.length === 2).toBeTruthy();
+      const message1 = resSms.info[0];
+      const message2 = resSms.info[1];
+
+      console.log('resSms: ', resSms);
     });
   });
-
 });

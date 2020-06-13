@@ -39,11 +39,13 @@ export class Account implements AccountInterface {
       isContactExists = tools.findByEmail(this.contacts, contactInfo.email)
     }
 
+    //update
     if (isContactExists) {
       const { id, email, phoneNumber } = isContactExists;
       Object.assign(isContactExists, contactInfo, { updateTime: tools.generateUnixTimeStamp() });
       return tools.statusMessage(true, messages.contact.updated({ id, email, phoneNumber }), isContactExists);
     } else {
+      //create
       const contact: ContactInterface = {
         id: tools.generateUniqId(),
         accountId: contactInfo.accountId,
