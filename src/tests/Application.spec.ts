@@ -279,6 +279,24 @@ describe("Application class", () => {
       const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
       expect(resLetter.ok).toBeTruthy();
       expect(app.letters[0].status === 'DELIVERED').toBeTruthy();
+    });
+
+    it('should not send sms/letter if bad admin or account id', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const contentSms = 'I will not spam you sms';
+      const contact1 = {
+        name: 'George',
+        phoneNumber: '+123456789',
+        email: 'order@gmail.com'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact1 });
+
+      const resSms = app.send('sms', { adminId: '123', accountId, content: contentSms });
+      expect(resSms.ok).toBeFalsy();
 
     });
 

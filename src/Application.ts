@@ -99,16 +99,7 @@ export class Application {
     return tools.findById(this.accounts, accountId);
   }
 
-  getAllAccountsContacts(): any {
-    // todo validate if found or no
-    const contacts = this.accounts.map(account => account.getContacts);
-    return flatten(contacts);
-  }
-  // todo: phone number validation
-  // todo: add email validation when finish with phone number
-  // todo: validation both of phone number and email
-  // todo: add ability to skip contact if it in Blacklist instead if throwing error 
-
+  // todo: phone number and email validation
   createContact({ accountId, adminId, contact }: CreateContactInterface) {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
@@ -274,6 +265,14 @@ export class Application {
   }
 
   private getAccountByAdmin({ adminId, accountId }: AccessArguments): Account | undefined {
+    const validation = pipe(
+      isAdminExists.bind(this.admins),
+      isAccountExists.bind(this.accounts),
+      errorHandler
+    )({ validateData: { adminId, accountId } });
+
+    if (!validation.ok) return;
+
     const admin = this.getAdminById(adminId);
     const account = admin.getAccount(accountId);
     return account;
