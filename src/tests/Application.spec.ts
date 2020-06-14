@@ -531,6 +531,33 @@ describe("Application class", () => {
       expect(app.blacklist.length === 1).toBeTruthy();
     });
 
+    it('should succesfully send Letter, unsubcribe by provided link, and not send again', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      // create contact and send sms
+      app.createContact({ accountId, adminId, contact: contact3 }).info;
+      app.createContact({ accountId, adminId, contact: contact4 }).info;
+      const messageInfo = app.send('letter', { adminId, accountId, content: 'Dummy text' });
+      // should be sent successfully
+      expect(messageInfo.ok).toBeTruthy();
+      // should send 2 messages
+      expect(messageInfo.info.length === 2).toBeTruthy();
+
+      const link = messageInfo.info[0].message.replace(/.*token=/, '');
+      // unsubcribe
+      const unsubcription = app.unsubsribeLink(link);
+      expect(unsubcription.ok).toBeTruthy();
+      // Add new contact in order to send sms again
+      app.createContact({ accountId, adminId, contact: contact4 }).info;
+      // send again
+      const newMessageInfo = app.send('letter', { adminId, accountId, content: 'Dummy text' });
+      expect(newMessageInfo.info.length === 1).toBeTruthy();
+      expect(app.blacklist.length === 1).toBeTruthy();
+    });
+
   });
 
 });
