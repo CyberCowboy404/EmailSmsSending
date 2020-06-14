@@ -429,7 +429,7 @@ describe("Application class", () => {
       expect(unsubscription.ok).toBeFalsy();
     });
 
-    it('should not pass unsubscribe validation if bad accountId, contactId and token proided', () => {
+    it('should not pass unsubscribe validation if bad accountId, contactId and token provided', () => {
       const app = new Application();
       const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
 
@@ -488,6 +488,7 @@ describe("Application class", () => {
       const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
 
       const contactData = app.createContact({ accountId, adminId, contact: contact1 }).info;
+      app.send('sms', { adminId, accountId, content: 'Dummy text' })
 
       let datatoEncrypt: string = `{
         "token":"${contactData.token}",
@@ -501,6 +502,33 @@ describe("Application class", () => {
       const unsubcription = app.unsubsribeLink(link);
       expect(unsubcription.ok).toBeTruthy();
       expect(app.blacklist[0].phoneNumber === contact1.phoneNumber).toBeTruthy();
+    });
+
+    it('should succesfully send sms, unsubcribe by provided link, and not send again', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      // create contact and send sms
+      app.createContact({ accountId, adminId, contact: contact1 }).info;
+      app.createContact({ accountId, adminId, contact: contact2 }).info;
+      const messageInfo = app.send('sms', { adminId, accountId, content: 'Dummy text' });
+      // should be sent successfully
+      expect(messageInfo.ok).toBeTruthy();
+      // should send 2 messages
+      expect(messageInfo.info.length === 2).toBeTruthy();
+
+      const link = messageInfo.info[0].message.replace(/.*token=/, '');
+      // unsubcribe
+      const unsubcription = app.unsubsribeLink(link);
+      expect(unsubcription.ok).toBeTruthy();
+      // Add new contact in order to send sms again
+      app.createContact({ accountId, adminId, contact: contact4 }).info;
+      // send again
+      const newMessageInfo = app.send('sms', { adminId, accountId, content: 'Dummy text' });
+      expect(newMessageInfo.info.length === 1).toBeTruthy();
+      expect(app.blacklist.length === 1).toBeTruthy();
     });
 
   });
