@@ -51,6 +51,10 @@ const messages = {
     contactsNotExists: 'You should add at least 1 contact before creation'
   },
   unsubscribe: {
+    missingRequiredData: 'Some required data to unsubscribe didn\'t come',
+    notEncrypted: 'String not encrypted',
+    linkNotJsonLike: 'Link is not JSON',
+    badLink: 'You can\'t unsubscribe using this data. Possible reasons: string not JSON like, required fields missing.',
     token: 'Tokens mismatch',
     phoneUser: 'User sucessfully unsubcribed from sms',
     emailUser: 'User sucessfully unsubcribed from email',

@@ -1,4 +1,4 @@
-import { some, isEmpty } from 'lodash';
+import { some, isEmpty, keys } from 'lodash';
 import messages from '../helpers/messages';
 import tools from '../helpers/tools';
 import { MessageInterface } from '../interfaces/Messages.iterface';
@@ -7,9 +7,8 @@ import { Admin } from '../Admin';
 import { BlackList } from '../interfaces/Application.interface';
 import { Account } from '../Account';
 import { ContactInterface, ContactData } from '../interfaces/Contact.interface';
-import { pipe } from 'lodash/fp';
-import { Sms } from '../Sender/Sms';
-import { Letter } from '../Sender/Letter';
+import { decrypt } from '../helpers/encryption';
+
 export type ValidationData = {
   validateData: {
     email?: string;
@@ -19,10 +18,12 @@ export type ValidationData = {
     letterId?: string;
     phoneNumber?: string;
     name?: string;
+    link?: string;
     contact?: {
       email: string;
       phoneNumber: string;
     };
+    decryptedLink?: string,
     content?: string;
   };
   errorArray?: string[];
@@ -47,7 +48,7 @@ export function isValidEmail({ validateData, errorArray = [] }: ValidationData):
   }
 }
 
-export function isUniqAdminEmail(this: Admin[], { validateData, errorArray }: ValidationData): ValidationData {
+export function isUniqAdminEmail(this: Admin[], { validateData, errorArray = [] }: ValidationData): ValidationData {
   // directly send arguments via this
   const admins: Admin[] = this;
   const admin = tools.findByEmail(admins, validateData.email || '') || [];
@@ -59,7 +60,7 @@ export function isUniqAdminEmail(this: Admin[], { validateData, errorArray }: Va
   }
 }
 
-export function isAdminExists(this: Admin[], { validateData, errorArray }: ValidationData): ValidationData {
+export function isAdminExists(this: Admin[], { validateData, errorArray = [] }: ValidationData): ValidationData {
   const admins: Admin[] = this;
   const admin = tools.findById(admins, validateData.adminId || '');
 
@@ -70,7 +71,7 @@ export function isAdminExists(this: Admin[], { validateData, errorArray }: Valid
   }
 }
 
-export function isAdminOwnerOfAccount(this: Admin, { validateData, errorArray }: ValidationData): ValidationData {
+export function isAdminOwnerOfAccount(this: Admin, { validateData, errorArray = [] }: ValidationData): ValidationData {
   const admin: Admin = this;
   const account = admin?.getAccount(validateData.accountId || '');
   const { accountId = '', adminId = '' } = validateData;
@@ -82,7 +83,7 @@ export function isAdminOwnerOfAccount(this: Admin, { validateData, errorArray }:
   }
 }
 
-export function isContactsProvided(this: ContactData, { validateData, errorArray }: ValidationData): ValidationData {
+export function isContactsProvided(this: ContactData, { validateData, errorArray = [] }: ValidationData): ValidationData {
   const contact: ContactData = this;
   if (!isEmpty(contact) && (contact.email || contact.phoneNumber)) {
     return nextData({ validateData, errorArray });
@@ -91,7 +92,7 @@ export function isContactsProvided(this: ContactData, { validateData, errorArray
   }
 }
 
-export function isContactsExists(this: ContactInterface[], { validateData, errorArray }: ValidationData): ValidationData {
+export function isContactsExists(this: ContactInterface[], { validateData, errorArray = [] }: ValidationData): ValidationData {
   const contact: ContactInterface[] = this;
   if (!isEmpty(contact)) {
     return nextData({ validateData, errorArray });
@@ -100,7 +101,36 @@ export function isContactsExists(this: ContactInterface[], { validateData, error
   }
 }
 
-export function isContactInBlackList(this: BlackList[], { validateData, errorArray }: ValidationData): ValidationData {
+export function isUnsubscribeLinkStructureValid({ validateData, errorArray = [] }: ValidationData): ValidationData {
+  try {
+    const unsubscribeData = JSON.parse(validateData.decryptedLink || '');
+
+    const isRequiredFiledExists = keys(unsubscribeData).every(item => item.hasOwnProperty('token')
+      && item.hasOwnProperty('unsubscribeSource')
+      && (item.hasOwnProperty('email') || item.hasOwnProperty('phoneNumber')));
+
+    const rightSource = unsubscribeData.unsubscribeSource === 'SMS_LINK' || unsubscribeData.unsubscribeSource === 'EMAIL_LINK';
+    if (isRequiredFiledExists && rightSource) {
+      return nextData({ validateData, errorArray });
+    } else {
+      return errorMessage(messages.unsubscribe.missingRequiredData, { validateData, errorArray });
+    }
+
+  } catch (err) {
+    return errorMessage(messages.unsubscribe.badLink, { validateData, errorArray });
+  }
+}
+
+export function isEncryptedString({ validateData, errorArray = [] }: ValidationData): ValidationData {
+  try {
+    decrypt(validateData.link || '');
+    return nextData({ validateData, errorArray });
+  } catch (err) {
+    return errorMessage(messages.unsubscribe.notEncrypted, { validateData, errorArray });
+  }
+}
+
+export function isContactInBlackList(this: BlackList[], { validateData, errorArray = [] }: ValidationData): ValidationData {
   const blacklist = this;
   const contactEmail = tools.findByEmail(blacklist, validateData.contact?.email || '');
   const contactPhone = tools.findByPhone(blacklist, validateData.contact?.phoneNumber || '');
@@ -112,7 +142,7 @@ export function isContactInBlackList(this: BlackList[], { validateData, errorArr
   }
 }
 
-export function isAccountExists(this: Account[], { validateData, errorArray }: ValidationData): ValidationData {
+export function isAccountExists(this: Account[], { validateData, errorArray = [] }: ValidationData): ValidationData {
   const accounts = this;
   const account = tools.findById(accounts, validateData.accountId || '');
 

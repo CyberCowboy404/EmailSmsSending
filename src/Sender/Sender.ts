@@ -64,8 +64,6 @@ export class Sender {
       //make string like key:value:key:value in order to easely convert it to object
       let unsubscribeSource = this.type === 'sms' ? 'SMS_LINK' : 'EMAIL_LINK';
       const stringToEncrypt: string = `{
-        "accountId":"${contact.accountId}",
-        "contactId":"${contact.id}",
         "phoneNumber": "${contact.phoneNumber || false}",
         "email": "${contact.email || false}",
         "unsubscribeSource": "${unsubscribeSource}",

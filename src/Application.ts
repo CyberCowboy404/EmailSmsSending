@@ -29,6 +29,8 @@ import {
   isAdminOwnerOfAccount,
   isContactsProvided,
   isContactsExists,
+  isEncryptedString,
+  isUnsubscribeLinkStructureValid,
 } from './validation/Rules';
 
 export class Application {
@@ -44,13 +46,7 @@ export class Application {
       isValidEmail,
       isUniqAdminEmail.bind(this.admins),
       errorHandler
-    )({
-      validateData: {
-        name,
-        email
-      },
-      errorArray: []
-    });
+    )({ validateData: { name, email } });
 
     if (!validation.ok) {
       return this.failedValidation(validation.info);
@@ -84,13 +80,7 @@ export class Application {
       isParamsEmpty,
       isAdminExists.bind(this.admins),
       errorHandler
-    )({
-      validateData: {
-        name,
-        adminId
-      },
-      errorArray: []
-    });
+    )({ validateData: { name, adminId } });
 
     if (!validation.ok) {
       return this.failedValidation(validation.info);
@@ -127,14 +117,7 @@ export class Application {
       isContactsProvided.bind(contact),
       isContactInBlackList.bind(this.blacklist),
       errorHandler
-    )({
-      validateData: {
-        accountId,
-        adminId,
-        contact
-      },
-      errorArray: []
-    });
+    )({ validateData: { accountId, adminId, contact } });
 
 
     if (!validation.ok) {
@@ -174,19 +157,36 @@ export class Application {
 
   }
 
+  // Should accept only encrypted strings, all other strings will be ignored.
   unsubsribeLink(link: string) {
-    // todo:
-    // check link 
-    // check decryption
-    // check after parsing
-    const decryptedLink = decrypt(link);
-    const linkData = decryptedLink.replace(/\s+/g, '');
-    const linkObject: EncryptedDataStructure = JSON.parse(linkData);
-    let result
-    // todo
-    // create validation structure for this type
-    if (linkObject) {
+    const encryption = pipe(
+      isEncryptedString,
+      errorHandler
+    )({ validateData: { link } });
+
+    if (!encryption.ok) {
+      return this.failedValidation(encryption.info);
     }
+
+    const linkString = decrypt(link);
+    const decryptedLink = linkString.replace(/\s+/g, '');
+
+    const validStructure = pipe(
+      isUnsubscribeLinkStructureValid,
+      errorHandler
+      )({ validateData: { decryptedLink } });
+      
+      console.log('validStructure: ', validStructure);
+    // console.log('validation: ', validation);
+
+    if (!validStructure.ok) {
+      return this.failedValidation(validStructure.info);
+    }
+
+    const linkObject: EncryptedDataStructure = JSON.parse(decryptedLink);
+
+    let result
+
     // refactor this validation
     if (linkObject.unsubscribeSource == 'SMS_LINK' && linkObject.phoneNumber) {
       this.blacklist.push({
@@ -244,14 +244,7 @@ export class Application {
       isAdminOwnerOfAccount.bind(this.getAdminById(adminId)),
       isContactsExists.bind(this.getContacts({ adminId, accountId })),
       errorHandler
-    )({
-      validateData: {
-        accountId,
-        adminId,
-        content
-      },
-      errorArray: []
-    });
+    )({ validateData: { accountId, adminId, content } });
 
     if (!validation.ok) {
       return this.failedValidation(validation.info);

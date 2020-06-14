@@ -4,7 +4,7 @@ import { Application } from '../Application';
 import { Admin } from '../Admin';
 import messages from '../helpers/messages'
 import { cloneDeep } from 'lodash'
-import { decrypt } from '../helpers/encryption';
+import { decrypt, encrypt } from '../helpers/encryption';
 
 const contact1 = {
   name: 'George',
@@ -207,7 +207,7 @@ describe("Application class", () => {
       const phoneNumber = '+71234562'
 
       app.blacklist.push({ email });
-      
+
       let contact1 = { email };
       //email in black
       let status = app.createContact({ accountId, adminId, contact: contact1 });
@@ -256,7 +256,6 @@ describe("Application class", () => {
     });
   });
 
-  // Also try to test and check with blacklist
   describe('Sender tests. Create and Send sms/letters', () => {
     it('should send sms/letter', () => {
       const app = new Application();
@@ -334,7 +333,6 @@ describe("Application class", () => {
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
       const resLet = app.send('letter', { adminId, accountId, content: contentSms });
 
-
       expect(resSms.info.length === 2).toBeTruthy();
       expect(resLet.info.length === 1).toBeTruthy();
 
@@ -343,9 +341,8 @@ describe("Application class", () => {
       const decrypt1 = decrypt(token1);
       expect(typeof decrypt1 === 'string').toBeTruthy();
       const jsonObj1 = JSON.parse(decrypt1);
-      
+
       expect(typeof jsonObj1 === 'object').toBeTruthy();
-      expect(jsonObj1.accountId === accountId).toBeTruthy();
       expect(jsonObj1.unsubscribeSource === 'SMS_LINK').toBeTruthy();
       expect(jsonObj1.phoneNumber === contact1.phoneNumber).toBeTruthy();
       expect(jsonObj1.token === contact1Token.info.token).toBeTruthy();
@@ -355,13 +352,99 @@ describe("Application class", () => {
       const decrypt2 = decrypt(token2);
       expect(typeof decrypt2 === 'string').toBeTruthy();
       const jsonObj2 = JSON.parse(decrypt2);
-      
+
       expect(typeof jsonObj2 === 'object').toBeTruthy();
-      expect(jsonObj2.accountId === accountId).toBeTruthy();
       expect(jsonObj2.unsubscribeSource === 'EMAIL_LINK').toBeTruthy();
       expect(jsonObj2.email === contact3.email).toBeTruthy();
       expect(jsonObj2.token === contact2Token.info.token).toBeTruthy();
-
     });
+
+    it('should not unsubscribe if not encrypted link provided', () => {
+      const app = new Application();
+      const badUnsubscription = app.unsubsribeLink('');
+      expect(badUnsubscription.ok).toBeFalsy();
+    });
+
+    it('should not unsubscribe if encrypted string not json', () => {
+      const app = new Application();
+      const string = 'Dummy string';
+      const encryptedString = encrypt(string);
+      const badUnsubscription = app.unsubsribeLink(encryptedString);
+      expect(badUnsubscription.ok).toBeFalsy();
+    });
+
+    it('should not unsubscribe if encrypted json don\'t have required fields', () => {
+      const app = new Application();
+
+      // Missing phone and email
+      let notAllRequiredFileds: string = `{
+        "unsubscribeSource": "EMAIL_LINK",
+        "token":"1234567880"
+      }`;
+
+      const encryptedString = encrypt(notAllRequiredFileds);
+      let unsubscription = app.unsubsribeLink(encryptedString);
+      expect(unsubscription.ok).toBeFalsy();
+
+      // Missing token
+      let notAllRequiredFileds: string = `{
+        "unsubscribeSource": "EMAIL_LINK",
+        "email":"ololo@gmail.com"
+      }`;
+      
+      const encryptedString = encrypt(notAllRequiredFileds);
+      let unsubscription = app.unsubsribeLink(encryptedString);
+      expect(unsubscription.ok).toBeFalsy();
+
+      // Missing unsubscribeSource
+      let notAllRequiredFileds: string = `{
+        "token":"1234567880",
+        "phoneNumber": "123123123"
+      }`;
+
+      const encryptedString = encrypt(notAllRequiredFileds);
+      let unsubscription = app.unsubsribeLink(encryptedString);
+
+      expect(unsubscription.ok).toBeFalsy();
+
+      // UnsubscribeSource wrong value
+      const encryptedString = encrypt(notAllRequiredFileds);
+      let unsubscription = app.unsubsribeLink(encryptedString);
+      expect(unsubscription.ok).toBeFalsy();
+
+      let notAllRequiredFileds: string = `{
+        "token":"1234567880",
+        "unsubscribeSource": "dummy_Source",
+        "phoneNumber": "123123123"
+      }`;
+
+      const encryptedString = encrypt(notAllRequiredFileds);
+      let unsubscription = app.unsubsribeLink(encryptedString);
+
+      expect(unsubscription.ok).toBeFalsy();
+    });
+
+    // it('should unsubscribe if right data provided', () => {
+    //   const app = new Application();
+    //   const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+    //   const adminId = app.createAdmin(adminInfo).info.id;
+    //   const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+    //   const contentSms = 'I will not spam you sms';
+    //   const contact1Token = app.createContact({ accountId, adminId, contact: contact1 });
+    //   const resSms = app.send('sms', { adminId, accountId, content: contentSms });
+
+    //   const message1 = resSms.info[0];
+    //   const token1 = message1.message.replace(/.*token=/, '');
+    //   const decrypt1 = decrypt(token1);
+    //   console.log('decrypt1: ', decrypt1);
+
+    //   const unsubscription = app.unsubsribeLink(token1);
+    //   // expect(unsubscription.ok).toBeTruthy();
+
+    //   console.log('unsubscription: ', unsubscription);
+
+    // });
   });
+
 });
