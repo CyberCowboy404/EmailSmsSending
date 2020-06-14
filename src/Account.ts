@@ -1,6 +1,7 @@
 import { AccountInterface } from './interfaces/Account.interface';
 import { ContactInterface, UnsubscribeSource, ContactData } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
+import { type } from './Sender/Sender';
 import tools from './helpers/tools';
 import messages from './helpers/messages';
 import { isEmpty, clone } from 'lodash';
@@ -100,15 +101,31 @@ export class Account implements AccountInterface {
     return this.unsubscribeCRM(contact, messages.unsubscribe.phoneCRM);
   }
 
-  resubscribeContact({ email = '', phoneNumber = '' }: UserInformation): MessageInterface {
-    const contact = tools.findByEmail(this.contacts, email) || tools.findByPhone(this.contacts, phoneNumber);
+  resubscribePhone({ phoneNumber = '' }: UserInformation): MessageInterface {
+    return this.resubcribe('sms', phoneNumber);
+  }
+
+  resubscribeEmail({ email = '' }: UserInformation): MessageInterface {
+    return this.resubcribe('letter', email);
+  }
+
+  private resubcribe(type: type, data: string) {
+    let contact;
+    if (type === 'sms') {
+      contact = tools.findByPhone(this.contacts, data);
+    } else if (type === 'letter') {
+      contact = tools.findByEmail(this.contacts, data);
+    }
+
     if (contact && contact.unsubscribeSource === 'CRM') {
       contact.phoneNumberEnabled = true;
       contact.emailEnabled = true;
+      delete contact.unsubscribeSource;
       return tools.statusMessage(true, messages.resubscribe);
     } else {
       return tools.statusMessage(false, messages.error.cantResubscribe);
     }
+
   }
 
   private unsubscribeCRM(contact: ContactInterface, message: string) {

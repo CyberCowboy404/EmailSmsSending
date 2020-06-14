@@ -18,8 +18,7 @@ export type UnsubScribeCrmData = {
   email?: string;
   phoneNumber?: string;
   accountId: string;
-  type: type;
-  unsubscribeSource: UnsubscribeSource;
+  unsubscribeSource?: UnsubscribeSource;
 }
 export type UnsubscribeCRM = {
   adminId: string;

@@ -96,6 +96,7 @@ export function isContactsProvided(this: ContactData, { validateData, errorArray
 
 export function isContactsExists(this: ContactInterface[], { validateData, errorArray = [] }: ValidationData): ValidationData {
   const contact: ContactInterface[] = this;
+  
   if (!isEmpty(contact)) {
     return nextData({ validateData, errorArray });
   } else {

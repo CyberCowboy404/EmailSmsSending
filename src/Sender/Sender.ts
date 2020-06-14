@@ -2,7 +2,7 @@ import { ContactInterface, UnsubscribeSource } from '../interfaces/Contact.inter
 import { MessageInterface } from '../interfaces/Messages.iterface';
 import tools from '../helpers/tools';
 import messages from '../helpers/messages';
-import { isEmpty } from 'lodash';
+import { isEmpty, uniqBy } from 'lodash';
 import { config } from '../config/config';
 import { encrypt } from '../helpers/encryption';
 import { type } from 'os';
@@ -29,7 +29,7 @@ export type SenderConstructor = {
 }
 export type type = 'sms' | 'letter';
 export class Sender {
-  public type: string;
+  public type: type;
   private contacts: ContactInterface[];
   id: string;
   content: string;
@@ -48,13 +48,14 @@ export class Sender {
     this.createTime = ts;
     this.sentTime = 0;
   }
-
+  // todo: clean contact lists from duplicates if any
   send(): MessageInterface {
+
     if (isEmpty(this.contacts)) {
       this.status = 'FAILED';
       return tools.statusMessage(false, messages.sender.contactsNotExists);
     }
-
+    // use it for unsubcribed by crm
     const notSent: ContactInterface[] = []
 
     const sent = this.contacts.map(contact => {

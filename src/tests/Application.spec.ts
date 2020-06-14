@@ -316,25 +316,23 @@ describe("Application class", () => {
       app.createContact({ accountId, adminId, contact: contact4 });
 
       app.blacklist = [{
-        email: 'order@gmail.com',
-        unsubscribeSource: 'EMAIL_LINK'
+        email: 'order@gmail.com'
       },
       {
-        phoneNumber: '+123456789',
-        unsubscribeSource: 'EMAIL_LINK',
+        phoneNumber: '+123456789'
       },
       {
-        phoneNumber: '+2123456789',
-        unsubscribeSource: 'EMAIL_LINK',
+        phoneNumber: '+2123456789'
       }];
-
+      console.log(app.accounts[0].contacts);
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
+      console.log('resSms: ', resSms);
 
-      expect(resSms.info.sent.length == 1).toBeTruthy();
+      expect(resSms.info.sent.length == 2).toBeTruthy();
       expect(resSms.ok).toBeTruthy();
 
       const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
-      expect(resLetter.info.sent.length == 1).toBeTruthy();
+      expect(resLetter.info.sent.length == 3).toBeTruthy();
       expect(resLetter.ok).toBeTruthy();
     });
 
@@ -600,7 +598,7 @@ describe("Application class", () => {
 
       expect(statusL.ok).toBeTruthy();
 
-      app.unsubscribeCRM({ adminId, data });
+      app.unsubscribeCRM('letter', { adminId, data });
 
       let statusL = app.send('letter', { adminId, accountId, content: 'Test' });
 
@@ -628,7 +626,7 @@ describe("Application class", () => {
 
       expect(statusL.ok).toBeTruthy();
 
-      app.unsubscribeCRM({ adminId, data });
+      app.unsubscribeCRM('sms', { adminId, data });
 
       let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
 
@@ -656,15 +654,16 @@ describe("Application class", () => {
 
       expect(statusL.ok).toBeTruthy();
 
-      app.unsubscribeCRM({ adminId, data });
+      app.unsubscribeCRM('sms', { adminId, data });
 
       let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
 
       expect(statusL.ok).toBeFalsy();
 
-      app.resubscribe({ accountId, adminId, phoneNumber: contact3.phoneNumber });
+      app.resubscribe('sms', { accountId, adminId, phoneNumber: contact3.phoneNumber });
 
       let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
+      console.log('statusL: ', statusL);
 
       expect(statusL.ok).toBeTruthy();
       

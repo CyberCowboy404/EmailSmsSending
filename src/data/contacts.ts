@@ -1,67 +1,48 @@
-import tools from '../helpers/tools';
-
-const contacts1 = (accountId: string) => {
-  return {
-
-    id: tools.generateUniqId(),
-    name: 'Jenifer',
-    email: 'jenifer@gmail.com',
-    emailEnabled: true,
-    phoneNumberEnabled: true,
-    phoneNumber: '+7808080808080',
-    accountId,
-    createTime: tools.generateUnixTimeStamp(),
-    updateTime: tools.generateUnixTimeStamp()
-  }
+export const contactEmail1: any = {
+  name: 'Garfield',
+  email: 'garfield@gmail.com',
 };
 
-const contacts2 = (accountId: string) => {
-  return {
-
-    id: tools.generateUniqId(),
-    name: 'Garfield',
-    email: 'garfield@gmail.com',
-    emailEnabled: true,
-    phoneNumberEnabled: true,
-    accountId,
-    createTime: tools.generateUnixTimeStamp(),
-    updateTime: tools.generateUnixTimeStamp()
-  }
+export const contactEmail1Same: any = {
+  name: 'Garfield',
+  email: 'garfield@gmail.com',
 };
 
-const contacts3 = (accountId: string) => {
-  return {
-
-    id: tools.generateUniqId(),
-    name: 'Gan',
-    email: 'geril@gmail.com',
-    phoneNumber: '+3805050505050',
-    emailEnabled: true,
-    phoneNumberEnabled: true,
-    accountId,
-    createTime: tools.generateUnixTimeStamp(),
-    updateTime: tools.generateUnixTimeStamp()
-  }
+export const contactEmail2: any = {
+  name: 'Garfield',
+  email: 'garfield2@gmail.com',
 };
 
-const contacts4 = (accountId: string) => {
-  return {
-    id: tools.generateUniqId(),
-    name: 'Greddy',
-    email: 'freddy@gmail.com',
-    emailEnabled: true,
-    phoneNumberEnabled: true,
-    accountId,
-    createTime: tools.generateUnixTimeStamp(),
-    updateTime: tools.generateUnixTimeStamp()
-  }
+export const contactEmail3: any = {
+  name: 'Garfield',
+  email: 'garfield3@gmail.com',
 };
 
-const contact = {
-  contacts1,
-  contacts2,
-  contacts3,
-  contacts4,
+export const contactEmail3Same: any = {
+  name: 'Garfield',
+  email: 'garfield3@gmail.com',
 };
 
-export default contact;
+export const contactPhone1: any = {
+  name: 'Garfield',
+  phoneNumber: '+1123456789',
+};
+export const contactPhone1Same: any = {
+  name: 'Garfield',
+  phoneNumber: '+1123456789',
+};
+
+export const contactPhone2: any = {
+  name: 'Garfield',
+  phoneNumber: '+2123456789',
+};
+
+export const contactPhone3: any = {
+  name: 'Garfield',
+  phoneNumber: '+3123456789',
+};
+
+export const contactPhone3Same: any = {
+  name: 'Garfield',
+  phoneNumber: '+3123456789',
+};

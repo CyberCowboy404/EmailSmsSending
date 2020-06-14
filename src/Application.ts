@@ -4,11 +4,11 @@ import { Admin } from './Admin';
 import { AdminConstructor } from './interfaces/Admin.interface';
 import { Account, AccountInfo } from './Account';
 import { Sms } from './Sender/Sms';
-import { EncryptedDataStructure } from './Sender/Sender';
+import { EncryptedDataStructure, type } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { flatten, isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
@@ -40,7 +40,7 @@ export class Application {
   private accounts: Account[] = [];
   private sms: Sms[] = [];
   private letters: Letter[] = [];
-  private blacklist: BlackList[] = [];
+  public blacklist: BlackList[] = [];
   createAdmin({ name, email }: AdminConstructor): MessageInterface {
     const validation: MessageInterface = pipe(
       isParamsEmpty,
@@ -126,22 +126,21 @@ export class Application {
 
   send(type: string, { adminId, accountId, content }: CreateSenderObjectInterface) {
     const beforeSend = this.senderCheck({ adminId, accountId, content });
+    let contacts;
 
     if (!beforeSend.ok) {
       return this.failedValidation(beforeSend.info);
     }
 
-    let contacts;
-
     if (type === 'sms') {
       const contactsWithPhones = contacts = beforeSend.info.filter((elem: ContactInterface) => !!elem.phoneNumber);
-      contacts = contactsWithPhones.filter((elem: any) => this.cleanFromBlack(elem, 'phoneNumber'));
+      contacts = contactsWithPhones.filter((elem: any) => this.cleanFromBlack(elem, 'sms'));
       const sms = new Sms({ type: 'sms', contacts, content });
       this.sms.push(sms);
       return sms.send();
     } else if (type === 'letter') {
       const contactsWithEmail = beforeSend.info.filter((elem: ContactInterface) => !!elem.email);
-      contacts = contactsWithEmail.filter((elem: any) => this.cleanFromBlack(elem, 'email'));
+      contacts = contactsWithEmail.filter((elem: any) => this.cleanFromBlack(elem, 'letter'));
       const letter = new Letter({ type: 'letter', contacts, content });
       this.letters.push(letter);
       return letter.send();
@@ -208,31 +207,40 @@ export class Application {
     return result;
   }
 
-  unsubscribeCRM({ adminId, data }: UnsubscribeCRM): MessageInterface | undefined {
+  unsubscribeCRM(type: type, { adminId, data }: UnsubscribeCRM): MessageInterface | undefined {
     // Validate all inputs
     const account = this.getAccountByAdmin({ adminId, accountId: data.accountId });
     let result;
-    if (data.type === 'letter' && data.email) {
+    if (type === 'letter' && data.email) {
       result = account?.unsubscribeEmailCrm(data.email);
-    } else if (data.type === 'sms' && data.phoneNumber) {
+    } else if (type === 'sms' && data.phoneNumber) {
       result = account?.unsubscribePhoneCrm(data.phoneNumber);
     }
     return result;
   }
 
-  resubscribe({ accountId, adminId, email, phoneNumber }: ResubscribeData) {
+  resubscribe(type: type, { accountId, adminId, email, phoneNumber }: ResubscribeData) {
     // todo validate parametrs
     const account = this.getAccountByAdmin({ adminId, accountId });
-    return account?.resubscribeContact({ email, phoneNumber });
+    let result;
+
+    if (type === 'sms') {
+      result = account?.resubscribePhone({ phoneNumber });
+    } else if (type === 'letter') {
+      result = account?.resubscribeEmail({ email });
+    }
+    return
   }
 
-  private cleanFromBlack(elem: any, key: string) {
-    if (elem[key]) {
-      const black = key === 'sms'
-        ? tools.findByPhone(this.blacklist, elem.phoneNumber)
-        : tools.findByEmail(this.blacklist, elem.email);
-      return isEmpty(black);
+  private cleanFromBlack(elem: any, key: type) {
+    let res;
+    if (key === 'sms') {
+      res = tools.findByEmail(this.blacklist, elem.phoneNumber);
+    } else if (key === 'letter') {
+      res = tools.findByEmail(this.blacklist, elem.email);
     }
+    
+    return isEmpty(res);
   }
 
   private senderCheck({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {
