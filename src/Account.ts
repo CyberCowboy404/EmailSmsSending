@@ -59,6 +59,7 @@ export class Account implements AccountInterface {
         phoneNumber: contactInfo.phoneNumber
       }
       this.contacts.push(contact);
+      // todo: skip token from info in future when finish all tests
       return tools.statusMessage(true, messages.contact.created, contact);
     }
   }

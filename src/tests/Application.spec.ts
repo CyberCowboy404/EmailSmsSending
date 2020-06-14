@@ -376,7 +376,7 @@ describe("Application class", () => {
       const badUnsubscription = app.unsubsribeLink(encryptedString);
       expect(badUnsubscription.ok).toBeFalsy();
     });
-    
+
     // todo check account and contact id
     it('should not unsubscribe if encrypted json don\'t have required fields', () => {
       const app = new Application();
@@ -427,6 +427,45 @@ describe("Application class", () => {
       let unsubscription = app.unsubsribeLink(encryptedString);
 
       expect(unsubscription.ok).toBeFalsy();
+    });
+
+    // it('should pass unsubscribtion, and properly add to blacklist', () => {
+    //   const app = new Application();
+    //   const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+    //   const adminId = app.createAdmin(adminInfo).info.id;
+    //   const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+    //   const contactData = app.createContact({ accountId, adminId, contact: contact1 }).info;
+
+    //   let datatoEncrypt: string = `{
+    //     "token":"${contactData.token}",
+    //     "unsubscribeSource": "SMS_LINK",
+    //     "phoneNumber": "123123123"
+    //   }`;
+
+    // });
+
+    it('should not pass unsubscribe validation with bad accountId, contacId, and bad token', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+      const contactData = app.createContact({ accountId, adminId, contact: contact1 }).info;
+
+      let datatoEncrypt: string = `{
+        "token":"${contactData.token}",
+        "accountId": "${accountId}",
+        "contactId": "${contactData.id}",
+        "unsubscribeSource": "SMS_LINK",
+        "phoneNumber": "${contactData.phoneNumber}"
+      }`;
+
+      let link = encrypt(datatoEncrypt);
+      const unsubcription = app.unsubsribeLink(link);
+      console.log('unsubcription: ', unsubcription);
     });
 
     // it('should unsubscribe if right data provided', () => {

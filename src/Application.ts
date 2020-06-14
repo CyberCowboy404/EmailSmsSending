@@ -159,6 +159,8 @@ export class Application {
   }
 
   // Should accept only encrypted strings, all other strings will be ignored.
+  // Should accept only object with all required fileds. see EncryptedDataStructure interface
+  // Account should have contact and contact should have token.
   unsubsribeLink(link: string) {
     const encryption = pipe(
       isEncryptedString,
@@ -177,6 +179,7 @@ export class Application {
       errorHandler
     )({ validateData: { decryptedLink } });
 
+    console.log('validStructure: ', validStructure);
     if (!validStructure.ok) {
       return this.failedValidation(validStructure.info);
     }
@@ -190,6 +193,7 @@ export class Application {
       errorHandler
     )({ validateData: { accountId, contactId, token } });
 
+    console.log('checkSecurityInfo: ', checkSecurityInfo);
     if (!checkSecurityInfo.ok) {
       return this.failedValidation(validStructure.info);
     }
@@ -204,7 +208,6 @@ export class Application {
       });
       const account = this.getAccount(linkObject.accountId);
       result = account.unsubscribePhoneLink(linkObject.phoneNumber, linkObject.token);
-      // I should pass not one account but all who has same email and phone
     } else if (linkObject.unsubscribeSource == 'EMAIL_LINK' && linkObject.email) {
       this.blacklist.push({
         email: linkObject.email,

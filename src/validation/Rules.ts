@@ -107,13 +107,14 @@ export function isUnsubscribeLinkStructureValid({ validateData, errorArray = [] 
   try {
     const unsubscribeData = JSON.parse(validateData.decryptedLink || '');
 
-    const isRequiredFiledExists = keys(unsubscribeData).every(item => item.hasOwnProperty('token')
-      && item.hasOwnProperty('unsubscribeSource')
-      && item.hasOwnProperty('accountId')
-      && item.hasOwnProperty('contactId')
-      && (item.hasOwnProperty('email') || item.hasOwnProperty('phoneNumber')));
+    const isRequiredFiledExists = unsubscribeData.hasOwnProperty('token')
+      && unsubscribeData.hasOwnProperty('unsubscribeSource')
+      && unsubscribeData.hasOwnProperty('accountId')
+      && unsubscribeData.hasOwnProperty('contactId')
+      && (unsubscribeData.hasOwnProperty('email') || unsubscribeData.hasOwnProperty('phoneNumber'));
 
     const rightSource = unsubscribeData.unsubscribeSource === 'SMS_LINK' || unsubscribeData.unsubscribeSource === 'EMAIL_LINK';
+
     if (isRequiredFiledExists && rightSource) {
       return nextData({ validateData, errorArray });
     } else {
@@ -160,10 +161,8 @@ export function isAccountExists(this: Account[], { validateData, errorArray = []
 export function isAccountContactTokensMatch(this: Account, { validateData, errorArray = [] }: ValidationData): ValidationData {
   const account = this;
   const contactId = validateData.contactId || '';
-  const contact = tools.findById([account], contactId)
+  const contact = tools.findById(account.contacts, contactId)
   const tokensMatch = contact.token === validateData.token;
-  
-  console.log('contactExists: ', contact);
 
   if (!isEmpty(account) && !isEmpty(contact) && tokensMatch) {
     return nextData({ validateData, errorArray });
