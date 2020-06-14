@@ -54,9 +54,11 @@ export class Sender {
       this.status = 'FAILED';
       return tools.statusMessage(false, messages.sender.contactsNotExists);
     }
+
     const notSent: ContactInterface[] = []
 
     const sent = this.contacts.map(contact => {
+      // This contact is unsubcribed by crm, dont touch him.
       if (!contact.phoneNumberEnabled || !contact.emailEnabled) {
         notSent.push(contact);
         return;
@@ -84,6 +86,6 @@ export class Sender {
     this.updateTime = ts;
     this.status = 'DELIVERED';
 
-    return tools.statusMessage(true, messages.sender.sent, sent);
+    return tools.statusMessage(true, messages.sender.sent, { sent, notSent });
   }
 }

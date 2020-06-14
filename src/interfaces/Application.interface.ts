@@ -1,4 +1,5 @@
 import { UnsubscribeSource } from './Contact.interface';
+import { type } from '../Sender/Sender';
 export interface AccessArguments {
   adminId: string;
   accountId: string;
@@ -17,7 +18,7 @@ export type UnsubScribeCrmData = {
   email?: string;
   phoneNumber?: string;
   accountId: string;
-  type: string;
+  type: type;
   unsubscribeSource: UnsubscribeSource;
 }
 export type UnsubscribeCRM = {

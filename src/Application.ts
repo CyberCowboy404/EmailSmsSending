@@ -255,8 +255,6 @@ export class Application {
   }
 
   private getContacts({ adminId, accountId }: AccessArguments) {
-    // todo
-    // parametr validation
     const account = this.getAccountByAdmin({ adminId, accountId });
     const contacts = account?.getContacts || [];
     const cleanContacts = contacts.filter(this.removeUnsubscribed);

@@ -330,11 +330,11 @@ describe("Application class", () => {
 
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
 
-      expect(resSms.info.length == 1).toBeTruthy();
+      expect(resSms.info.sent.length == 1).toBeTruthy();
       expect(resSms.ok).toBeTruthy();
 
       const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
-      expect(resLetter.info.length == 1).toBeTruthy();
+      expect(resLetter.info.sent.length == 1).toBeTruthy();
       expect(resLetter.ok).toBeTruthy();
     });
 
@@ -351,10 +351,11 @@ describe("Application class", () => {
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
       const resLet = app.send('letter', { adminId, accountId, content: contentSms });
 
-      expect(resSms.info.length === 2).toBeTruthy();
-      expect(resLet.info.length === 1).toBeTruthy();
+      expect(resSms.info.sent.length === 2).toBeTruthy();
+      expect(resLet.info.sent.length === 1).toBeTruthy();
 
-      const message1 = resSms.info[0];
+      const message1 = resSms.info.sent[0];
+
       const token1 = message1.message.replace(/.*token=/, '');
       const decrypt1 = decrypt(token1);
       expect(typeof decrypt1 === 'string').toBeTruthy();
@@ -367,7 +368,7 @@ describe("Application class", () => {
       expect(jsonObj1.phoneNumber === contact1.phoneNumber).toBeTruthy();
       expect(jsonObj1.token === contact1Token.info.token).toBeTruthy();
 
-      const message2 = resLet.info[0];
+      const message2 = resLet.info.sent[0];
       const token2 = message2.message.replace(/.*token=/, '');
       const decrypt2 = decrypt(token2);
       expect(typeof decrypt2 === 'string').toBeTruthy();
@@ -535,9 +536,9 @@ describe("Application class", () => {
       // should be sent successfully
       expect(messageInfo.ok).toBeTruthy();
       // should send 2 messages
-      expect(messageInfo.info.length === 2).toBeTruthy();
+      expect(messageInfo.info.sent.length === 2).toBeTruthy();
 
-      const link = messageInfo.info[0].message.replace(/.*token=/, '');
+      const link = messageInfo.info.sent[0].message.replace(/.*token=/, '');
       // unsubcribe
       const unsubcription = app.unsubsribeLink(link);
       expect(unsubcription.ok).toBeTruthy();
@@ -545,7 +546,7 @@ describe("Application class", () => {
       app.createContact({ accountId, adminId, contact: contact4 }).info;
       // send again
       const newMessageInfo = app.send('sms', { adminId, accountId, content: 'Dummy text' });
-      expect(newMessageInfo.info.length === 1).toBeTruthy();
+      expect(newMessageInfo.info.sent.length === 1).toBeTruthy();
       expect(app.blacklist.length === 1).toBeTruthy();
     });
 
@@ -562,9 +563,9 @@ describe("Application class", () => {
       // should be sent successfully
       expect(messageInfo.ok).toBeTruthy();
       // should send 2 messages
-      expect(messageInfo.info.length === 2).toBeTruthy();
+      expect(messageInfo.info.sent.length === 2).toBeTruthy();
 
-      const link = messageInfo.info[0].message.replace(/.*token=/, '');
+      const link = messageInfo.info.sent[0].message.replace(/.*token=/, '');
       // unsubcribe
       const unsubcription = app.unsubsribeLink(link);
       expect(unsubcription.ok).toBeTruthy();
@@ -572,10 +573,66 @@ describe("Application class", () => {
       app.createContact({ accountId, adminId, contact: contact4 }).info;
       // send again
       const newMessageInfo = app.send('letter', { adminId, accountId, content: 'Dummy text' });
-      expect(newMessageInfo.info.length === 1).toBeTruthy();
+      expect(newMessageInfo.info.sent.length === 1).toBeTruthy();
       expect(app.blacklist.length === 1).toBeTruthy();
     });
 
   });
 
+  describe('Unsubscribe CRM', () => {
+    it('should send sms/letter than unsubcribe this user from crm and not allow send him again', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+      const data = {
+        email: contact3.email,
+        accountId,
+        type: 'letter',
+        unsubscribeSource: 'CRM'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact3 }).info;
+
+      let statusL = app.send('letter', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeTruthy();
+
+      app.unsubscribeCRM({ adminId, data });
+
+      let statusL = app.send('letter', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeFalsy();
+
+    });
+
+    it('should send letter than unsubcribe this user from crm and not allow send him again', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+      const data = {
+        phoneNumber: contact3.phoneNumber,
+        accountId,
+        type: 'sms',
+        unsubscribeSource: 'CRM'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact3 }).info;
+
+      let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeTruthy();
+
+      app.unsubscribeCRM({ adminId, data });
+
+      let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeFalsy();
+    })
+  });
 });
