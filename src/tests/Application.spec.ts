@@ -343,6 +343,8 @@ describe("Application class", () => {
       const jsonObj1 = JSON.parse(decrypt1);
 
       expect(typeof jsonObj1 === 'object').toBeTruthy();
+      expect(jsonObj1.accountId === accountId).toBeTruthy();
+      expect(jsonObj1.contactId === contact1Token.info.id).toBeTruthy();
       expect(jsonObj1.unsubscribeSource === 'SMS_LINK').toBeTruthy();
       expect(jsonObj1.phoneNumber === contact1.phoneNumber).toBeTruthy();
       expect(jsonObj1.token === contact1Token.info.token).toBeTruthy();
@@ -354,6 +356,8 @@ describe("Application class", () => {
       const jsonObj2 = JSON.parse(decrypt2);
 
       expect(typeof jsonObj2 === 'object').toBeTruthy();
+      expect(jsonObj2.accountId === accountId).toBeTruthy();
+      expect(jsonObj2.contactId === contact2Token.info.id).toBeTruthy();
       expect(jsonObj2.unsubscribeSource === 'EMAIL_LINK').toBeTruthy();
       expect(jsonObj2.email === contact3.email).toBeTruthy();
       expect(jsonObj2.token === contact2Token.info.token).toBeTruthy();

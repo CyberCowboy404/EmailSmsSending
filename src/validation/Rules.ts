@@ -107,6 +107,8 @@ export function isUnsubscribeLinkStructureValid({ validateData, errorArray = [] 
 
     const isRequiredFiledExists = keys(unsubscribeData).every(item => item.hasOwnProperty('token')
       && item.hasOwnProperty('unsubscribeSource')
+      && item.hasOwnProperty('accountId')
+      && item.hasOwnProperty('contactId')
       && (item.hasOwnProperty('email') || item.hasOwnProperty('phoneNumber')));
 
     const rightSource = unsubscribeData.unsubscribeSource === 'SMS_LINK' || unsubscribeData.unsubscribeSource === 'EMAIL_LINK';
