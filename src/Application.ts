@@ -31,6 +31,7 @@ import {
   isContactsExists,
   isEncryptedString,
   isUnsubscribeLinkStructureValid,
+  isAccountContactTokensMatch,
 } from './validation/Rules';
 
 export class Application {
@@ -174,18 +175,26 @@ export class Application {
     const validStructure = pipe(
       isUnsubscribeLinkStructureValid,
       errorHandler
-      )({ validateData: { decryptedLink } });
-      
-      console.log('validStructure: ', validStructure);
-    // console.log('validation: ', validation);
+    )({ validateData: { decryptedLink } });
 
     if (!validStructure.ok) {
       return this.failedValidation(validStructure.info);
     }
 
     const linkObject: EncryptedDataStructure = JSON.parse(decryptedLink);
+    const { accountId, contactId, token } = linkObject;
 
-    let result
+    const checkSecurityInfo = pipe(
+      isAccountExists.bind(this.accounts),
+      isAccountContactTokensMatch.bind(this.getAccount(accountId)),
+      errorHandler
+    )({ validateData: { accountId, contactId, token } });
+
+    if (!checkSecurityInfo.ok) {
+      return this.failedValidation(validStructure.info);
+    }
+
+    let result;
 
     // refactor this validation
     if (linkObject.unsubscribeSource == 'SMS_LINK' && linkObject.phoneNumber) {

@@ -376,7 +376,8 @@ describe("Application class", () => {
       const badUnsubscription = app.unsubsribeLink(encryptedString);
       expect(badUnsubscription.ok).toBeFalsy();
     });
-
+    
+    // todo check account and contact id
     it('should not unsubscribe if encrypted json don\'t have required fields', () => {
       const app = new Application();
 

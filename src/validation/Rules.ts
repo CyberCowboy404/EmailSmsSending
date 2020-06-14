@@ -19,12 +19,14 @@ export type ValidationData = {
     phoneNumber?: string;
     name?: string;
     link?: string;
+    contactId?: string;
     contact?: {
       email: string;
       phoneNumber: string;
     };
     decryptedLink?: string,
     content?: string;
+    token?: string;
   };
   errorArray?: string[];
   admins?: AdminInterface[]
@@ -149,6 +151,21 @@ export function isAccountExists(this: Account[], { validateData, errorArray = []
   const account = tools.findById(accounts, validateData.accountId || '');
 
   if (!isEmpty(accounts) && !isEmpty(account)) {
+    return nextData({ validateData, errorArray });
+  } else {
+    return errorMessage(messages.account.accountNotExists, { validateData, errorArray });
+  }
+}
+
+export function isAccountContactTokensMatch(this: Account, { validateData, errorArray = [] }: ValidationData): ValidationData {
+  const account = this;
+  const contactId = validateData.contactId || '';
+  const contact = tools.findById([account], contactId)
+  const tokensMatch = contact.token === validateData.token;
+  
+  console.log('contactExists: ', contact);
+
+  if (!isEmpty(account) && !isEmpty(contact) && tokensMatch) {
     return nextData({ validateData, errorArray });
   } else {
     return errorMessage(messages.account.accountNotExists, { validateData, errorArray });
