@@ -235,7 +235,7 @@ export class Application {
   private cleanFromBlack(elem: any, key: type) {
     let res;
     if (key === 'sms') {
-      res = tools.findByEmail(this.blacklist, elem.phoneNumber);
+      res = tools.findByPhone(this.blacklist, elem.phoneNumber);
     } else if (key === 'letter') {
       res = tools.findByEmail(this.blacklist, elem.email);
     }
