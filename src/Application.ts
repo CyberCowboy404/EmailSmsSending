@@ -179,7 +179,6 @@ export class Application {
       errorHandler
     )({ validateData: { decryptedLink } });
 
-    console.log('validStructure: ', validStructure);
     if (!validStructure.ok) {
       return this.failedValidation(validStructure.info);
     }
@@ -193,7 +192,6 @@ export class Application {
       errorHandler
     )({ validateData: { accountId, contactId, token } });
 
-    console.log('checkSecurityInfo: ', checkSecurityInfo);
     if (!checkSecurityInfo.ok) {
       return this.failedValidation(validStructure.info);
     }

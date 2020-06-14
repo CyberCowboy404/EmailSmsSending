@@ -33,6 +33,7 @@ const messages = {
   },
   contact: {
     created: 'Contact created',
+    notExists: 'Contact not exists',
     blackList: 'Contact in blacklist',
     noContactsProvided: 'No contacts provided. You should specify email or phone number to proceed',
     notValid: 'Contact should have valid email or phone number',
@@ -51,6 +52,7 @@ const messages = {
     contactsNotExists: 'You should add at least 1 contact before creation'
   },
   unsubscribe: {
+    badAccess: 'trying to access bad user or wrong access data provided',
     missingRequiredData: 'Some required data to unsubscribe didn\'t come',
     notEncrypted: 'String not encrypted',
     linkNotJsonLike: 'Link is not JSON',

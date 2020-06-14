@@ -160,14 +160,20 @@ export function isAccountExists(this: Account[], { validateData, errorArray = []
 
 export function isAccountContactTokensMatch(this: Account, { validateData, errorArray = [] }: ValidationData): ValidationData {
   const account = this;
+  if (!account) {
+    return errorMessage(messages.account.accountNotExists, { validateData, errorArray });
+  }
   const contactId = validateData.contactId || '';
-  const contact = tools.findById(account.contacts, contactId)
+  const contact = tools.findById(account.contacts, contactId);
+  if (!contact) {
+    return errorMessage(messages.contact.notExists, { validateData, errorArray });
+  }
   const tokensMatch = contact.token === validateData.token;
 
   if (!isEmpty(account) && !isEmpty(contact) && tokensMatch) {
     return nextData({ validateData, errorArray });
   } else {
-    return errorMessage(messages.account.accountNotExists, { validateData, errorArray });
+    return errorMessage(messages.unsubscribe.badAccess, { validateData, errorArray });
   }
 }
 

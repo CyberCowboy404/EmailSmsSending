@@ -396,7 +396,7 @@ describe("Application class", () => {
         "unsubscribeSource": "EMAIL_LINK",
         "email":"ololo@gmail.com"
       }`;
-      
+
       const encryptedString = encrypt(notAllRequiredFileds);
       let unsubscription = app.unsubsribeLink(encryptedString);
       expect(unsubscription.ok).toBeFalsy();
@@ -429,24 +429,58 @@ describe("Application class", () => {
       expect(unsubscription.ok).toBeFalsy();
     });
 
-    // it('should pass unsubscribtion, and properly add to blacklist', () => {
-    //   const app = new Application();
-    //   const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+    it('should not pass unsubscribe validation if bad accountId, contactId and token proided', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
 
-    //   const adminId = app.createAdmin(adminInfo).info.id;
-    //   const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
 
-    //   const contactData = app.createContact({ accountId, adminId, contact: contact1 }).info;
+      const contactData = app.createContact({ accountId, adminId, contact: contact1 }).info;
+      // bad account id
+      let datatoEncrypt: string = `{
+        "token":"${contactData.token}",
+        "accountId": "12",
+        "contactId": "${contactData.id}",
+        "unsubscribeSource": "SMS_LINK",
+        "phoneNumber": "${contactData.phoneNumber}"
+      }`;
 
-    //   let datatoEncrypt: string = `{
-    //     "token":"${contactData.token}",
-    //     "unsubscribeSource": "SMS_LINK",
-    //     "phoneNumber": "123123123"
-    //   }`;
+      let link = encrypt(datatoEncrypt);
+      const unsubcription = app.unsubsribeLink(link);
+      expect(unsubcription.ok).toBeFalsy();
+      expect(app.blacklist.length === 0).toBeTruthy();
 
-    // });
+      //bad Token
+      let datatoEncrypt: string = `{
+        "token":"123",
+        "accountId": "${accountId}",
+        "contactId": "${contactData.id}",
+        "unsubscribeSource": "SMS_LINK",
+        "phoneNumber": "${contactData.phoneNumber}"
+      }`;
 
-    it('should not pass unsubscribe validation with bad accountId, contacId, and bad token', () => {
+      let link = encrypt(datatoEncrypt);
+      const unsubcription = app.unsubsribeLink(link);
+      expect(unsubcription.ok).toBeFalsy();
+      expect(app.blacklist.length === 0).toBeTruthy();
+
+      //bad contactid
+      let datatoEncrypt: string = `{
+        "token":"${contactData.token}",
+        "accountId": "${accountId}",
+        "contactId": "123",
+        "unsubscribeSource": "SMS_LINK",
+        "phoneNumber": "${contactData.phoneNumber}"
+      }`;
+
+      let link = encrypt(datatoEncrypt);
+      const unsubcription = app.unsubsribeLink(link);
+      expect(unsubcription.ok).toBeFalsy();
+      expect(app.blacklist.length === 0).toBeTruthy();
+    });
+
+    it('should pass unsubscribe validation and contact should appear in black list', () => {
       const app = new Application();
       const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
 
@@ -465,30 +499,10 @@ describe("Application class", () => {
 
       let link = encrypt(datatoEncrypt);
       const unsubcription = app.unsubsribeLink(link);
-      console.log('unsubcription: ', unsubcription);
+      expect(unsubcription.ok).toBeTruthy();
+      expect(app.blacklist[0].phoneNumber === contact1.phoneNumber).toBeTruthy();
     });
 
-    // it('should unsubscribe if right data provided', () => {
-    //   const app = new Application();
-    //   const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
-    //   const adminId = app.createAdmin(adminInfo).info.id;
-    //   const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
-
-    //   const contentSms = 'I will not spam you sms';
-    //   const contact1Token = app.createContact({ accountId, adminId, contact: contact1 });
-    //   const resSms = app.send('sms', { adminId, accountId, content: contentSms });
-
-    //   const message1 = resSms.info[0];
-    //   const token1 = message1.message.replace(/.*token=/, '');
-    //   const decrypt1 = decrypt(token1);
-    //   console.log('decrypt1: ', decrypt1);
-
-    //   const unsubscription = app.unsubsribeLink(token1);
-    //   // expect(unsubscription.ok).toBeTruthy();
-
-    //   console.log('unsubscription: ', unsubscription);
-
-    // });
   });
 
 });
