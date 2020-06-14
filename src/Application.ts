@@ -221,7 +221,7 @@ export class Application {
   }
 
   resubscribe({ accountId, adminId, email, phoneNumber }: ResubscribeData) {
-    // todo: validate all parameters
+    // todo validate parametrs
     const account = this.getAccountByAdmin({ adminId, accountId });
     return account?.resubscribeContact({ email, phoneNumber });
   }
@@ -284,5 +284,9 @@ export class Application {
 
   private failedValidation(info: string[]) {
     return tools.statusMessage(false, messages.validation.failed, info);
+  }
+  // todo: write pipe function for basic access check validation
+  private accessCheck() {
+
   }
 }

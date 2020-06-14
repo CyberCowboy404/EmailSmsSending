@@ -635,4 +635,40 @@ describe("Application class", () => {
       expect(statusL.ok).toBeFalsy();
     })
   });
+  describe('Resubscribe', () => {
+    it('should resubscribe user', () => {
+      const app = new Application();
+      const adminInfo = { email: 'den@gmail.com', name: 'Alex' };
+
+      const adminId = app.createAdmin(adminInfo).info.id;
+      const accountId = app.createAccount({ adminId, name: 'My account 1' }).info.id;
+
+      const data = {
+        phoneNumber: contact3.phoneNumber,
+        accountId,
+        type: 'sms',
+        unsubscribeSource: 'CRM'
+      };
+
+      app.createContact({ accountId, adminId, contact: contact3 }).info;
+
+      let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeTruthy();
+
+      app.unsubscribeCRM({ adminId, data });
+
+      let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeFalsy();
+
+      app.resubscribe({ accountId, adminId, phoneNumber: contact3.phoneNumber });
+
+      let statusL = app.send('sms', { adminId, accountId, content: 'Test' });
+
+      expect(statusL.ok).toBeTruthy();
+      
+
+    });
+  })
 });
