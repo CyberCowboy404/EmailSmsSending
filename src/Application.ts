@@ -178,7 +178,7 @@ export class Application {
 
     const linkObject: EncryptedDataStructure = JSON.parse(decryptedLink);
     const { accountId, contactId, token } = linkObject;
-    console.log('linkObject: ', linkObject);
+    // console.log('linkObject: ', linkObject);
 
     const checkSecurityInfo = pipe(
       isAccountExists.bind(this.accounts),
@@ -193,11 +193,11 @@ export class Application {
     let result;
 
     // refactor this validation
+    const account = this.getAccount(linkObject.accountId);
+
     if (linkObject.unsubscribeSource == 'SMS_LINK' && linkObject.phoneNumber) {
-      const account = this.getAccount(linkObject.accountId);
       result = account.unsubscribePhoneLink(linkObject.phoneNumber, linkObject.token);
     } else if (linkObject.unsubscribeSource == 'EMAIL_LINK' && linkObject.email) {
-      const account = this.getAccount(linkObject.accountId);
       result = account.unsubscribeEmailLink(linkObject.email, linkObject.token);
     }
 
@@ -206,7 +206,7 @@ export class Application {
       phoneNumber: result?.info.phoneNumber,
       unsubscribeSource: 'EMAIL_LINK'
     });
-    
+
     const { email, phoneNumber } = result?.info;
     const emails = [email];
     const phoneNumbers = [phoneNumber];
@@ -231,6 +231,7 @@ export class Application {
     });
 
     // const newContacts = this.accounts.map(account => account.contacts);
+    // console.log('newContacts: ', newContacts);
 
     return result;
   }

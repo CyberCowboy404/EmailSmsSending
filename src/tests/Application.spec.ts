@@ -326,13 +326,14 @@ describe("Application class", () => {
       }];
       console.log(app.accounts[0].contacts);
       const resSms = app.send('sms', { adminId, accountId, content: contentSms });
-      console.log('resSms: ', resSms);
+      // console.log('resSms: ', resSms);
 
       expect(resSms.info.sent.length == 2).toBeTruthy();
       expect(resSms.ok).toBeTruthy();
 
       const resLetter = app.send('letter', { adminId, accountId, content: contentLetter });
-      expect(resLetter.info.sent.length == 3).toBeTruthy();
+      console.log('resLetter: ', resLetter);
+      expect(resLetter.info.sent.length == 1).toBeTruthy();
       expect(resLetter.ok).toBeTruthy();
     });
 
