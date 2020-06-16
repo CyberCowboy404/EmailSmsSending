@@ -6,102 +6,78 @@ import * as data from './data/contacts';
 
 const app = new Application();
 
-// - Admin sends emails to all his subscribed contacts via his Account 
-// - Admin sends sms to all his subscribed contacts via his Account
-// - Contact is unsubscribed by email with EMAIL_LINK
-// - Contact is unsubscribed by email with CRM
-// - Contact is unsubscribed by phone number with SMS_LINK
-// - Contact is unsubscribed by phone with CRM
-// - Admin is trying to add a new contact with email that is blocked
-// - Admin is trying to add a new contact with phone number that is blocked 
-// - Show the list of all blocked emails
-// - Show the list of all blocked phone numbers
-// - Update the list of blocked emails by array of emails
-// - Update the list of blocked phone numbers by array of phone numbers
-// - Admin resubscribes the contact and tries to send him email / sms
+// ________________________________________________________________________________________
+const admin1 = {
+  email: 'admin1@gmail.com',
+  name: 'admin1'
+};
 
-const adminId = app.createAdmin({ email: 'admin@gmail.com', name: 'name' }).info.id;
+const adminId = app.createAdmin(admin1).info.id;
 const accountId = app.createAccount({ adminId, name: 'Account 1' }).info.id;
 
-// generate Account contacts
-data.contactEmail1.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactEmail1 });
+const contact = {
+  phoneNumber: '+1111111',
+  email: 'contact1@gmail.com',
+  name: 'Contact 1',
+  accountId,
+};
 
-data.contactEmail2.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactEmail2 });
+const status = app.createContact({ adminId, accountId, contact });
 
-data.contactEmail3.accountId = accountId;
-const contactEmail3 = app.createContact({ accountId, adminId, contact: data.contactEmail3 })?.info;
+const smsStatus = app.send('sms', { adminId, accountId, content: 'sms1' });
+// ________________________________________________________________________________________
 
-data.contactPhone1.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactPhone1 });
+const admin2 = {
+  email: 'admin2@gmail.com',
+  name: 'admin2'
+};
 
-data.contactPhone2.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactPhone2 });
+const adminId2 = app.createAdmin(admin2).info.id;
+const accountId2 = app.createAccount({ adminId: adminId2, name: 'Account 2' }).info.id;
 
-data.contactPhone3.accountId = accountId;
-const contactPhone3 = app.createContact({ accountId, adminId, contact: data.contactPhone3 })?.info;
+const contact2 = {
+  phoneNumber: '+222222',
+  email: 'contact1@gmail.com',
+  name: 'Contact 2',
+  accountId: accountId2,
+};
 
+const status2 = app.createContact({ adminId: adminId2, accountId: accountId2, contact: contact2 });
 
-data.contactEmail1Same.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactEmail1Same });
+// ________________________________________________________________________________________
 
-data.contactEmail3Same.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactEmail3Same });
+const admin3 = {
+  email: 'admin3@gmail.com',
+  name: 'admin3'
+};
 
-data.contactPhone1.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactPhone1Same });
+const adminId3 = app.createAdmin(admin3).info.id;
+const accountId3 = app.createAccount({ adminId: adminId3, name: 'Account 3' }).info.id;
 
-data.contactPhone3Same.accountId = accountId;
-app.createContact({ accountId, adminId, contact: data.contactPhone3Same });
+const contact3 = {
+  phoneNumber: '+222222',
+  email: 'contact2@gmail.com',
+  name: 'Contact 3',
+  accountId: accountId3,
+};
 
-// - Admin sends emails to all his subscribed contacts via his Account 
-const lettersStatus = app.send('letter', { adminId, accountId, content: 'Email content latter' });
+app.createContact({ adminId: adminId3, accountId: accountId3, contact: contact3 });
+app.createContact({ adminId: adminId3, accountId: accountId3, contact: contact });
 
-// - Admin sends sms to all his subscribed contacts via his Account
-const smsStatus = app.send('sms', { adminId, accountId, content: 'SMS content latter' });
+let emailStatus = app.send('letter', { accountId, adminId, content: 'Account 1 send email' });
 
-// Extract message unsubcribe link
-const unsubcribeBySmsLink = smsStatus?.info.sent[0].message.replace(/.*token=/, '');
-const unsubcribeByEmailLink = lettersStatus?.info.sent[0].message.replace(/.*token=/, '');
+const message = emailStatus?.info.sent[0].message.replace(/.*token=/, '');
 
-// - Contact is unsubscribed by phone number with SMS_LINK
-app.unsubsribeLink(unsubcribeBySmsLink);
-// - Contact is unsubscribed by email with EMAIL_LINK
-app.unsubsribeLink(unsubcribeByEmailLink);
+const unsubcribestatus = app.unsubsribeLink(message);
 
-// Pick users which should be unsubcribed
-const unsubcribeByCrmEmail = contactEmail3;
-const unsubcribeByCrmSms = contactPhone3;
+let emailStatus2 = app.send('letter', { accountId: accountId2, adminId: adminId2, content: 'Account 2 send email' });
+const smsStatus2 = app.send('sms', {accountId: accountId2, adminId: adminId2, content: 'Account 2 send sms'});
 
-// - Contact is unsubscribed by email with CRM
-app.unsubscribeCRM('letter', { adminId, data: unsubcribeByCrmEmail });
-// - Contact is unsubscribed by phone with CRM
-app.unsubscribeCRM('sms', { adminId, data: unsubcribeByCrmSms });
+// console.log('smsStatus2: ', smsStatus2);
+// console.log('emailStatus2: ', emailStatus2);
 
-// - Admin is trying to add a new contact with email that is blocked
-app.createContact({ adminId, accountId, contact: data.contactEmail1 });
-// - Admin is trying to add a new contact with phone number that is blocked 
-app.createContact({ adminId, accountId, contact: data.contactPhone1 });
+// console.log('blacklist', app.blacklist);
+// console.log('unsubcribestatus: ', unsubcribestatus);
 
-// In case we adding user banned by crm we should update contact
-// Js is to fast so we need to create a timeout in order to check if update time changed
-setTimeout(function () {
-  // - Admin is trying to add a new contact with email that is blocked
-  app.createContact({ adminId, accountId, contact: contactEmail3 });
-  // - Admin is trying to add a new contact with phone number that is blocked 
-  app.createContact({ adminId, accountId, contact: contactPhone3 });
-
-  // - Show the list of all blocked emails
-  // - Show the list of all blocked phone numbers
-  app.blacklist;
-  
-  app.resubscribe('sms', { accountId, adminId, phoneNumber: contactPhone3.phoneNumber });
-  app.resubscribe('letter', { accountId, adminId, email: contactEmail3.email });
-  
-  app.send('sms', { adminId, accountId, content: 'content' });
-  app.send('letter', { adminId, accountId, content: 'content' });
-
-}, 2000);
-
+// console.log('message: ', message);
 

@@ -8,7 +8,7 @@ import { EncryptedDataStructure, type } from './Sender/Sender';
 import { Letter } from './Sender/Letter';
 import { CreateContactInterface, ContactInterface } from './interfaces/Contact.interface';
 import { MessageInterface } from './interfaces/Messages.iterface';
-import { isEmpty } from 'lodash';
+import { isEmpty, flatten } from 'lodash';
 import { pipe } from 'lodash/fp';
 import { decrypt } from './helpers/encryption';
 import {
@@ -33,6 +33,8 @@ import {
   isUnsubscribeLinkStructureValid,
   isAccountContactTokensMatch,
 } from './validation/Rules';
+import { contactEmail1 } from './data/contacts';
+import { AccountInterface } from './interfaces/Account.interface';
 
 export class Application {
   private admins: Admin[] = [];
@@ -151,6 +153,7 @@ export class Application {
   // Should accept only encrypted strings, all other strings will be ignored.
   // Should accept only object with all required fileds. see EncryptedDataStructure interface
   // Account should have contact and contact should have token.
+  // todo: Refactor method. Split to small pieces.
   unsubsribeLink(link: string) {
     const encryption = pipe(
       isEncryptedString,
@@ -175,6 +178,7 @@ export class Application {
 
     const linkObject: EncryptedDataStructure = JSON.parse(decryptedLink);
     const { accountId, contactId, token } = linkObject;
+    console.log('linkObject: ', linkObject);
 
     const checkSecurityInfo = pipe(
       isAccountExists.bind(this.accounts),
@@ -190,20 +194,44 @@ export class Application {
 
     // refactor this validation
     if (linkObject.unsubscribeSource == 'SMS_LINK' && linkObject.phoneNumber) {
-      this.blacklist.push({
-        phoneNumber: linkObject.phoneNumber,
-        unsubscribeSource: 'SMS_LINK'
-      });
       const account = this.getAccount(linkObject.accountId);
       result = account.unsubscribePhoneLink(linkObject.phoneNumber, linkObject.token);
     } else if (linkObject.unsubscribeSource == 'EMAIL_LINK' && linkObject.email) {
-      this.blacklist.push({
-        email: linkObject.email,
-        unsubscribeSource: 'EMAIL_LINK'
-      });
       const account = this.getAccount(linkObject.accountId);
       result = account.unsubscribeEmailLink(linkObject.email, linkObject.token);
     }
+
+    this.blacklist.push({
+      email: result?.info.email,
+      phoneNumber: result?.info.phoneNumber,
+      unsubscribeSource: 'EMAIL_LINK'
+    });
+    
+    const { email, phoneNumber } = result?.info;
+    const emails = [email];
+    const phoneNumbers = [phoneNumber];
+
+    this.accounts.forEach((account: AccountInterface) => {
+      const accountContact = account.contacts;
+
+      accountContact.forEach((contact: ContactInterface) => {
+        if (emails.includes(contact.email)) {
+          contact.phoneNumber && phoneNumbers.push(contact.phoneNumber);
+          contact.emailEnabled = false;
+          contact.phoneNumberEnabled = false;
+        }
+
+        if (phoneNumbers.includes(contact.phoneNumber)) {
+          contact.email && emails.push(contact.email);
+
+          contact.phoneNumberEnabled = false;
+          contact.emailEnabled = false;
+        }
+      });
+    });
+
+    // const newContacts = this.accounts.map(account => account.contacts);
+
     return result;
   }
 
@@ -233,14 +261,10 @@ export class Application {
   }
 
   private cleanFromBlack(elem: any, key: type) {
-    let res;
-    if (key === 'sms') {
-      res = tools.findByPhone(this.blacklist, elem.phoneNumber);
-    } else if (key === 'letter') {
-      res = tools.findByEmail(this.blacklist, elem.email);
-    }
-    
-    return isEmpty(res);
+    let phone = tools.findByPhone(this.blacklist, elem.phoneNumber);
+    let email = tools.findByEmail(this.blacklist, elem.email);
+
+    return isEmpty(phone) && isEmpty(email);
   }
 
   private senderCheck({ adminId, accountId, content }: CreateSenderObjectInterface): MessageInterface {

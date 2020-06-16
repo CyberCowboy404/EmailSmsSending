@@ -56,7 +56,7 @@ export class Account implements AccountInterface {
         token: generateToken(),
         emailEnabled: true,
         phoneNumberEnabled: true,
-        email: contactInfo.email,
+        email: contactInfo.email || '',
         phoneNumber: contactInfo.phoneNumber
       }
       this.contacts.push(contact);
@@ -127,7 +127,6 @@ export class Account implements AccountInterface {
     }
 
   }
-
   private unsubscribeCRM(contact: ContactInterface, message: string) {
     if (contact) {
       contact.phoneNumberEnabled = false;
@@ -149,7 +148,7 @@ export class Account implements AccountInterface {
       contact.emailEnabled = false;
       contact.unsubscribeSource = unsubscribeSource;
       contact.token = generateToken();
-      return tools.statusMessage(true, message);
+      return tools.statusMessage(true, message, contact);
     } else {
       return tools.statusMessage(false, messages.unsubscribe.token);
     }

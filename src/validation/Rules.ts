@@ -21,8 +21,8 @@ export type ValidationData = {
     link?: string;
     contactId?: string;
     contact?: {
-      email: string;
-      phoneNumber: string;
+      email?: string;
+      phoneNumber?: string;
     };
     decryptedLink?: string,
     content?: string;

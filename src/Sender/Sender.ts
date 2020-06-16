@@ -76,6 +76,8 @@ export class Sender {
       }`;
       const token = encrypt(stringToEncrypt);
       return {
+        email: contact.email,
+        phoneNumber: contact.phoneNumber,
         message: `${this.content} in order to unsubscribe follow this link ${config.website}/?token=${token}`
       };
     });
